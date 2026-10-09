@@ -21,24 +21,34 @@ builder.Services.AddControllers(options => options.Filters.Add<FluentValidationF
     .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.ConfigureHttpJsonOptions(o =>
     o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
-builder.Services.AddOpenApi(o => o.AddDocumentTransformer<BearerSecurityTransformer>());
+builder.Services.AddOpenApi(o => o.AddDocumentTransformer<BearerSecurityTransformer>());  // for openapi security scheme
 
-// --- Validation --- (new)
+// --- Validation ---
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
 
 // --- Authentication & authorization ---
 builder.Services.AddJwtAuth(builder.Configuration);
 
-// --- Rate limiting for credential endpoints ---
+// --- Rate limiting ---
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
     options.AddPolicy("auth", httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
             httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1)
+            }));
+
+    options.AddPolicy("orders", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 20,
                 Window = TimeSpan.FromMinutes(1)
             }));
 });
@@ -58,8 +68,14 @@ builder.Services.AddCors(options =>
 // --- Health ---
 builder.Services.AddHealthChecks();
 
+// --- Options & clock ---
+builder.Services.Configure<OrderOptions>(
+    builder.Configuration.GetSection(OrderOptions.SectionName));
+builder.Services.AddSingleton(TimeProvider.System);
+
 // --- Application services ---
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<ITokenService, TokenService>();
 
