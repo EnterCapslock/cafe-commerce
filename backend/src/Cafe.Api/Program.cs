@@ -1,8 +1,12 @@
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 using Cafe.Api.Data;
+using Cafe.Api.Extensions;
 using Cafe.Api.Middleware;
 using Cafe.Api.Services;
 using Cafe.Api.Services.Interfaces;
+using Cafe.Api.Validators;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
@@ -13,18 +17,37 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
 // --- Web API ---
-builder.Services.AddControllers()
+builder.Services.AddControllers(options => options.Filters.Add<FluentValidationFilter>())
     .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
-// The OpenAPI generator reads the minimal-API JSON options, so register there too.
 builder.Services.ConfigureHttpJsonOptions(o =>
     o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(o => o.AddDocumentTransformer<BearerSecurityTransformer>());
+
+// --- Validation --- (new)
+builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
+
+// --- Authentication & authorization ---
+builder.Services.AddJwtAuth(builder.Configuration);
+
+// --- Rate limiting for credential endpoints ---
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("auth", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1)
+            }));
+});
 
 // --- Errors: RFC 7807 everywhere ---
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
-// --- CORS: explicit origins only, driven by configuration ---
+// --- CORS ---
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
 builder.Services.AddCors(options =>
     options.AddPolicy("Frontend", policy => policy
@@ -32,21 +55,23 @@ builder.Services.AddCors(options =>
         .AllowAnyHeader()
         .AllowAnyMethod()));
 
-// --- Health (used by Render/Fly) ---
+// --- Health ---
 builder.Services.AddHealthChecks();
 
 // --- Application services ---
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddSingleton<ITokenService, TokenService>();
 
 var app = builder.Build();
 
 app.UseExceptionHandler();
-app.UseStatusCodePages();   // plain 404/405 responses also become ProblemDetails
+app.UseStatusCodePages();
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();                 // /openapi/v1.json
-    app.MapScalarApiReference();      // /scalar/v1
+    app.MapOpenApi();
+    app.MapScalarApiReference();
 
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -58,9 +83,12 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("Frontend");
+app.UseRateLimiter();
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllers();
 app.MapHealthChecks("/health");
 
 app.Run();
 
-public partial class Program;   // lets WebApplicationFactory<Program> see the entry point 
+public partial class Program;
