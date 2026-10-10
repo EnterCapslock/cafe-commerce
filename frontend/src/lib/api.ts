@@ -1,4 +1,11 @@
-import type { ProblemDetails, ProductCategory, ProductDetail, ProductSummary } from "@/types/api";
+import type {
+  CreateOrderRequest,
+  OrderDto,
+  ProblemDetails,
+  ProductCategory,
+  ProductDetail,
+  ProductSummary,
+} from "@/types/api";
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5080").replace(/\/$/, "");
 
@@ -61,6 +68,7 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     );
   }
 
+  // 204 No Content has no body. Callers of such endpoints use request<void>(...).
   if (response.status === 204) return undefined as T;
 
   return (await response.json()) as T;
@@ -72,6 +80,13 @@ export const api = {
       revalidate: 30,
     }),
 
+  // Availability changes quickly, so never serve this from any cache.
   getProduct: (id: number) =>
     request<ProductDetail>(`/api/products/${id}`, { cache: "no-store" }),
+
+  createOrder: (body: CreateOrderRequest) =>
+    request<OrderDto>("/api/orders", { method: "POST", body }),
+
+  getOrder: (id: string, signal?: AbortSignal) =>
+    request<OrderDto>(`/api/orders/${id}`, { cache: "no-store", signal }),
 };

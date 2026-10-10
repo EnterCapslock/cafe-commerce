@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { CategoryFilter } from "@/components/menu/category-filter";
 import { ProductCard } from "@/components/menu/product-card";
 import { api } from "@/lib/api";
@@ -10,14 +11,9 @@ function parseCategory(value: string | string[] | undefined): ProductCategory | 
   return CATEGORIES.find((c) => c === first);   // anything else falls back to "All"
 }
 
-export default async function MenuPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ category?: string | string[] }>;
-}) {
-  const category = parseCategory((await searchParams).category);
-  const products = await api.getMenu(category);
+type SearchParams = Promise<{ category?: string | string[] }>;
 
+export default function MenuPage({ searchParams }: { searchParams: SearchParams }) {
   return (
     <div className="space-y-6">
       <div className="space-y-1">
@@ -25,8 +21,33 @@ export default async function MenuPage({
         <p className="text-muted-foreground">Order ahead and pick up in store. Pay online or at the counter.</p>
       </div>
 
-      <CategoryFilter active={category} />
+      <Suspense
+        fallback={
+          <div className="space-y-4" aria-busy="true">
+            <p role="status" className="text-muted-foreground">
+              Brewing the menu… if it&apos;s been a while, our server may take up to a minute to wake up.
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {Array.from({ length: 8 }, (_, i) => (
+                <div key={i} className="h-72 animate-pulse rounded-xl bg-muted" />
+              ))}
+            </div>
+          </div>
+        }
+      >
+        <MenuContent searchParams={searchParams} />
+      </Suspense>
+    </div>
+  );
+}
 
+async function MenuContent({ searchParams }: { searchParams: SearchParams }) {
+  const category = parseCategory((await searchParams).category);
+  const products = await api.getMenu(category);
+
+  return (
+    <>
+      <CategoryFilter active={category} />
       {products.length === 0 ? (
         <p className="py-12 text-center text-muted-foreground">Nothing here yet. Check back soon.</p>
       ) : (
@@ -34,6 +55,6 @@ export default async function MenuPage({
           {products.map((p) => <ProductCard key={p.id} product={p} />)}
         </div>
       )}
-    </div>
+    </>
   );
 }
