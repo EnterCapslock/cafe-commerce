@@ -8,6 +8,7 @@ using Cafe.Api.Services.Interfaces;
 using Cafe.Api.Validators;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,7 +22,7 @@ builder.Services.AddControllers(options => options.Filters.Add<FluentValidationF
     .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.ConfigureHttpJsonOptions(o =>
     o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
-builder.Services.AddOpenApi(o => o.AddDocumentTransformer<BearerSecurityTransformer>());  // for openapi security scheme
+builder.Services.AddOpenApi(o => o.AddDocumentTransformer<BearerSecurityTransformer>());
 
 // --- Validation ---
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
@@ -37,20 +38,12 @@ builder.Services.AddRateLimiter(options =>
     options.AddPolicy("auth", httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
             httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            _ => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = 10,
-                Window = TimeSpan.FromMinutes(1)
-            }));
+            _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1) }));
 
     options.AddPolicy("orders", httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
             httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            _ => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = 20,
-                Window = TimeSpan.FromMinutes(1)
-            }));
+            _ => new FixedWindowRateLimiterOptions { PermitLimit = 20, Window = TimeSpan.FromMinutes(1) }));
 });
 
 // --- Errors: RFC 7807 everywhere ---
@@ -71,13 +64,24 @@ builder.Services.AddHealthChecks();
 // --- Options & clock ---
 builder.Services.Configure<OrderOptions>(
     builder.Configuration.GetSection(OrderOptions.SectionName));
+builder.Services.Configure<PayMongoOptions>(
+    builder.Configuration.GetSection(PayMongoOptions.SectionName));
 builder.Services.AddSingleton(TimeProvider.System);
+
+// --- Payments ---
+builder.Services.AddHttpClient<IPaymentGateway, PayMongoGateway>((sp, client) =>
+{
+    var pm = sp.GetRequiredService<IOptions<PayMongoOptions>>().Value;
+    client.BaseAddress = new Uri(pm.BaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(15);
+});
 
 // --- Application services ---
 builder.Services.AddScoped<IProductService, ProductService>();
-builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<ITokenService, TokenService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddHostedService<OrderCleanupService>();
 
 var app = builder.Build();
 

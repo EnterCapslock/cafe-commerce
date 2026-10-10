@@ -18,9 +18,18 @@ public class OrdersController(IOrderService orders) : ControllerBase
     [ProducesResponseType<OrderDto>(StatusCodes.Status201Created)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status422UnprocessableEntity)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status502BadGateway)]
     public async Task<ActionResult<OrderDto>> Create(CreateOrderRequest request, CancellationToken ct)
     {
         var result = await orders.CreateAsync(request, CurrentUserId(), ct);
+
+        if (result.PaymentUnavailable)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status502BadGateway,
+                title: "Online payment is temporarily unavailable.",
+                detail: "Please try again, or choose to pay at the counter.");
+        }
 
         if (!result.Succeeded)
         {
@@ -28,7 +37,7 @@ public class OrdersController(IOrderService orders) : ControllerBase
                 new Dictionary<string, string[]> { ["items"] = [.. result.Errors] })
             {
                 Status = StatusCodes.Status422UnprocessableEntity,
-                Title = "Some items in your order can't be ordered."
+                Title = "This order can't be placed as requested."
             });
         }
 

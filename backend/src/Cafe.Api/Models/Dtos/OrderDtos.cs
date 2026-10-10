@@ -8,7 +8,8 @@ public record CreateOrderRequest(
     string CustomerEmail,
     string CustomerPhone,
     DateTimeOffset PickupTime,
-    IReadOnlyList<OrderLineRequest> Items);
+    IReadOnlyList<OrderLineRequest> Items,
+    PaymentMethod PaymentMethod);
 
 public record OrderItemDto(
     int VariantId,
@@ -27,4 +28,8 @@ public record OrderDto(
     DateTime PickupTime,
     decimal TotalAmount,
     DateTime CreatedAt,
+    PaymentMethod PaymentMethod,
+    PaymentStatus PaymentStatus,
+    string? CheckoutUrl,      // only present while an online order is still unpaid
+    DateTime? PaidAt,
     IReadOnlyList<OrderItemDto> Items);

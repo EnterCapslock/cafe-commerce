@@ -1,13 +1,22 @@
+using System.Text.RegularExpressions;
 using Cafe.Api.Data;
 using Cafe.Api.Models.Dtos;
 using Cafe.Api.Models.Entities;
 using Cafe.Api.Models.Enums;
 using Cafe.Api.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 namespace Cafe.Api.Services;
 
-public class OrderService(AppDbContext db, TimeProvider time, ILogger<OrderService> logger) : IOrderService
+public class OrderService(
+    AppDbContext db,
+    TimeProvider time,
+    IPaymentGateway gateway,
+    IOptions<OrderOptions> options,
+    ILogger<OrderService> logger) : IOrderService
 {
+    private readonly OrderOptions _opts = options.Value;
+
     public async Task<CreateOrderResult> CreateAsync(
         CreateOrderRequest request, int? userId, CancellationToken ct)
     {
@@ -34,12 +43,10 @@ public class OrderService(AppDbContext db, TimeProvider time, ILogger<OrderServi
         if (userId is { } uid && !await db.Users.AnyAsync(u => u.Id == uid, ct))
             userId = null;
 
-        // 4. Cuts off '+63' and attaches a '0'
-        var cleanPhone = System.Text.RegularExpressions.Regex.Replace(request.CustomerPhone, @"[\s\-]", "");
+        // 4. Store phone numbers as 09XXXXXXXXX
+        var cleanPhone = Regex.Replace(request.CustomerPhone, @"[\s\-]", "");
         if (cleanPhone.StartsWith("+63"))
-        {
-            cleanPhone = "0" + cleanPhone[3..]; 
-        }
+            cleanPhone = "0" + cleanPhone[3..];
 
         // 5. Build the order. Prices come from the database, never from the client.
         var now = time.GetUtcNow().UtcDateTime;
@@ -51,6 +58,8 @@ public class OrderService(AppDbContext db, TimeProvider time, ILogger<OrderServi
             CustomerPhone = cleanPhone,
             PickupTime = request.PickupTime.UtcDateTime,
             Status = OrderStatus.Pending,
+            PaymentMethod = request.PaymentMethod,
+            PaymentStatus = PaymentStatus.Unpaid,
             CreatedAt = now,
             UpdatedAt = now
         };
@@ -69,12 +78,38 @@ public class OrderService(AppDbContext db, TimeProvider time, ILogger<OrderServi
         }
         order.TotalAmount = order.Items.Sum(i => i.PriceAtPurchase * i.Quantity);
 
-        // 6. One SaveChanges = one transaction: the order and all its items, or nothing.
+        // 6. Large orders can't be left to a "pay later" promise.
+        if (order.PaymentMethod == PaymentMethod.PayAtCounter && order.TotalAmount > _opts.MaxCounterPaymentAmount)
+        {
+            return CreateOrderResult.Fail(
+            [
+                $"Orders over ₱{_opts.MaxCounterPaymentAmount:N0} can't be paid at the counter. Please pay online."
+            ]);
+        }
+
+        // 7. Online: create the hosted checkout BEFORE saving, so a gateway outage leaves no orphan order.
+        if (order.PaymentMethod == PaymentMethod.Online)
+        {
+            try
+            {
+                var session = await gateway.CreateCheckoutAsync(order, ct);
+                order.PaymentReference = session.Id;
+                order.CheckoutUrl = session.Url;
+            }
+            catch (PaymentGatewayException ex)
+            {
+                logger.LogError(ex, "Online payment unavailable for new order {OrderId}", order.Id);
+                return CreateOrderResult.GatewayDown();
+            }
+        }
+
+        // 8. One SaveChanges = one transaction: the order and all its items, or nothing.
         db.Orders.Add(order);
         await db.SaveChangesAsync(ct);
 
-        logger.LogInformation("Order {OrderId} created ({Lines} lines, total {Total}, user {UserId})",
-            order.Id, order.Items.Count, order.TotalAmount, userId);
+        logger.LogInformation(
+            "Order {OrderId} created ({Lines} lines, total {Total}, {Method}, user {UserId})",
+            order.Id, order.Items.Count, order.TotalAmount, order.PaymentMethod, userId);
 
         return CreateOrderResult.Ok(order.ToDto());
     }
@@ -107,5 +142,34 @@ public class OrderService(AppDbContext db, TimeProvider time, ILogger<OrderServi
             .ToListAsync(ct);
 
         return orders.Select(o => o.ToDto()).ToList();
+    }
+
+    public async Task<bool> MarkPaidAsync(Guid orderId, string checkoutSessionId, CancellationToken ct)
+    {
+        var now = time.GetUtcNow().UtcDateTime;
+
+        // A single conditional UPDATE: atomic, and a duplicate delivery matches zero rows.
+        var rows = await db.Orders
+            .Where(o => o.Id == orderId
+                     && o.PaymentMethod == PaymentMethod.Online
+                     && o.PaymentReference == checkoutSessionId
+                     && o.PaymentStatus != PaymentStatus.Paid)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(o => o.PaymentStatus, PaymentStatus.Paid)
+                .SetProperty(o => o.PaidAt, (DateTime?)now)
+                .SetProperty(o => o.UpdatedAt, now), ct);
+
+        if (rows == 0)
+        {
+            logger.LogInformation(
+                "Ignored payment event for order {OrderId}: unknown, mismatched, or already paid", orderId);
+            return false;
+        }
+
+        if (await db.Orders.AnyAsync(o => o.Id == orderId && o.Status == OrderStatus.Cancelled, ct))
+            logger.LogWarning("Order {OrderId} was paid after it was cancelled. A refund is required.", orderId);
+
+        logger.LogInformation("Order {OrderId} marked as paid", orderId);
+        return true;
     }
 }

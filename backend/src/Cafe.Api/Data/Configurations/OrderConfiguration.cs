@@ -14,6 +14,11 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         b.Property(o => o.TotalAmount).HasColumnType("numeric(10,2)");
         b.Property(o => o.Status).HasConversion<string>().HasMaxLength(30);
 
+        b.Property(o => o.PaymentMethod).HasConversion<string>().HasMaxLength(20);
+        b.Property(o => o.PaymentStatus).HasConversion<string>().HasMaxLength(20);
+        b.Property(o => o.PaymentReference).HasMaxLength(100);
+        b.Property(o => o.CheckoutUrl).HasMaxLength(500);
+        
         // Powers the live order board: "active orders, oldest first"
         b.HasIndex(o => new { o.Status, o.CreatedAt });
         b.HasIndex(o => o.UserId);

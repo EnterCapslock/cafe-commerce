@@ -10,6 +10,8 @@ public class CreateOrderRequestValidator : AbstractValidator<CreateOrderRequest>
     {
         var o = options.Value;
 
+        RuleFor(x => x.PaymentMethod).IsInEnum();
+        
         RuleFor(x => x.CustomerName).NotEmpty().MaximumLength(100);
 
         RuleFor(x => x.CustomerEmail).NotEmpty().MaximumLength(254).EmailAddress();
