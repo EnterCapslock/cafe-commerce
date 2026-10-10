@@ -25,7 +25,7 @@ public class PayMongoGateway(
         var returnUrl = $"{frontend}/orders/{order.Id}";   // status page; shows Paid or "Complete payment"
         var methods = _opts.PaymentMethodTypes.Length > 0
             ? _opts.PaymentMethodTypes
-            : ["gcash", "qrph", "card"];
+            : ["gcash", "paymaya", "grab_pay", "qrph", "card"];
 
         var payload = new
         {
