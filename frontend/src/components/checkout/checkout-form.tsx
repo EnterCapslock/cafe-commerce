@@ -250,7 +250,7 @@ export function CheckoutForm({ onPlaced }: { onPlaced: (order: OrderDto) => void
               <Choice
                 selected={paymentMethod === "Online"}
                 title="Pay online"
-                description="GCash, QR Ph, or card, through PayMongo. Demo mode: no real money is charged."
+                description="GCash, Maya, GrabPay, QR Ph, or card, through PayMongo. Demo mode: no real money is charged."
                 onSelect={() => setValue("paymentMethod", "Online", { shouldValidate: true })}
               />
               <Choice
