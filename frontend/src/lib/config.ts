@@ -1,0 +1,1 @@
+export const SITE_NAME = "The Cafe";   // rename to your cafe's name
