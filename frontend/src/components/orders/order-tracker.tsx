@@ -83,8 +83,19 @@ export function OrderTracker({ id }: { id: string }) {
     return (
       <div className="space-y-4 py-16 text-center">
         <h1 className="text-2xl font-semibold">We couldn&apos;t find that order</h1>
-        <p className="text-muted-foreground">Check the link, or place a new order.</p>
-        <Button asChild><Link href="/">Back to the menu</Link></Button>
+        <p className="text-muted-foreground">
+          Check the link. If you placed this order while signed in, you&apos;ll need to sign in to see it.
+        </p>
+        <div className="flex justify-center gap-2">
+          {session.status !== "authenticated" && (
+            <Button asChild>
+              <Link href={`/login?next=/orders/${id}`}>Sign in</Link>
+            </Button>
+          )}
+          <Button asChild variant="outline">
+            <Link href="/">Back to the menu</Link>
+          </Button>
+        </div>
       </div>
     );
   }
@@ -122,7 +133,7 @@ export function OrderTracker({ id }: { id: string }) {
       {session.status === "anonymous" && order.status !== "Completed" && order.status !== "Cancelled" && (
         <SaveOrderLink orderId={order.id} />
       )}
-      
+
       {stale && <p role="status" className="text-sm text-muted-foreground">Reconnecting…</p>}
 
       <PaymentNotice order={order} />

@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { useSession } from "@/components/auth/session-provider";
 import { CheckoutForm } from "@/components/checkout/checkout-form";
 import { CheckoutSummary } from "@/components/checkout/checkout-summary";
 import { Button } from "@/components/ui/button";
@@ -39,11 +40,12 @@ function RedirectScreen({ kind }: { kind: RedirectKind }) {
 export function CheckoutPage() {
   const router = useRouter();
   const hydrated = useHydrated();
+  const { session } = useSession();
   const lineCount = useCartStore((s) => s.items.length);
   const clear = useCartStore((s) => s.clear);
+  const lastOrderId = useLastOrderId();
   const [redirect, setRedirect] = useState<RedirectKind | null>(null);
   const placedOrderId = useRef<string | null>(null);
-  const lastOrderId = useLastOrderId();
 
   // Pressing Back from PayMongo can restore this page from the browser's cache with the
   // spinner still showing. Send the customer to their order page, where "Pay now" lives.
@@ -73,7 +75,8 @@ export function CheckoutPage() {
     }
   }
 
-  if (!hydrated) {
+  // Wait for the session so the form can start with the customer's name and email already filled in.
+  if (!hydrated || session.status === "loading") {
     return <div className="h-64 animate-pulse rounded-xl bg-muted" aria-busy="true" />;
   }
 
@@ -102,7 +105,10 @@ export function CheckoutPage() {
 
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_22rem]">
-      <CheckoutForm onPlaced={handlePlaced} />
+      <CheckoutForm
+        onPlaced={handlePlaced}
+        user={session.status === "authenticated" ? session.user : null}
+      />
       <CheckoutSummary />
     </div>
   );

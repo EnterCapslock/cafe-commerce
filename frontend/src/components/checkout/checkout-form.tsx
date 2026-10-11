@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { CircleAlert } from "lucide-react";
 import { useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
+import Link from "next/link";
 import { PickupPicker } from "@/components/checkout/pickup-picker";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,7 @@ import { checkoutSchema, type CheckoutValues } from "@/lib/schemas/checkout";
 import { formatPht, PICKUP_MAX_DAYS, PICKUP_MIN_LEAD_MINUTES, phtLocalToIso, resolvePickupIso } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { selectSubtotal, useCartStore } from "@/stores/cart-store";
-import type { OrderDto } from "@/types/api";
+import type { OrderDto, UserDto } from "@/types/api";
 
 const STEPS = ["Your details", "Pickup & payment", "Review"] as const;
 const LAST_STEP = STEPS.length - 1;
@@ -71,7 +72,13 @@ function FieldError({ id, message }: { id: string; message?: string }) {
   ) : null;
 }
 
-export function CheckoutForm({ onPlaced }: { onPlaced: (order: OrderDto) => void }) {
+export function CheckoutForm({
+  onPlaced,
+  user,
+}: {
+  onPlaced: (order: OrderDto) => void;
+  user: UserDto | null;
+}) {
   const items = useCartStore((s) => s.items);
   const subtotal = useCartStore(selectSubtotal);
   const counterAllowed = subtotal <= COUNTER_PAYMENT_LIMIT;
@@ -86,8 +93,8 @@ export function CheckoutForm({ onPlaced }: { onPlaced: (order: OrderDto) => void
     resolver: zodResolver(checkoutSchema),
     mode: "onTouched",
     defaultValues: {
-      customerName: "",
-      customerEmail: "",
+      customerName: user?.name ?? "",
+      customerEmail: user?.email ?? "",
       customerPhone: "",
       pickupChoice: "20",
       pickupLocal: "",
@@ -171,6 +178,21 @@ export function CheckoutForm({ onPlaced }: { onPlaced: (order: OrderDto) => void
       {step === 0 && (
         <fieldset className="space-y-4">
           <legend className="mb-1 text-lg font-medium">Your details</legend>
+          
+          <p className="text-sm text-muted-foreground">
+            {user ? (
+              <>Ordering as {user.email}. This order will be saved to your account.</>
+            ) : (
+              <>
+                Checking out as a guest.{" "}
+                <Link href="/login?next=/checkout" className="font-medium text-foreground underline underline-offset-4">
+                  Sign in
+                </Link>{" "}
+                to save this order to your account.
+              </>
+            )}
+          </p>
+
           <p className="text-sm text-muted-foreground">All fields are required.</p>
 
           <div className="space-y-2">

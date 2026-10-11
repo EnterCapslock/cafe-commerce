@@ -8,8 +8,8 @@ import { useLastOrderId } from "@/lib/last-order";
 
 export function UserMenu() {
   const { session, signOut } = useSession();
-  const lastOrderId = useLastOrderId();
   const router = useRouter();
+  const lastOrderId = useLastOrderId();
 
   if (session.status === "loading") {
     return <div className="h-8 w-20 animate-pulse rounded-md bg-muted" aria-hidden />;
@@ -36,6 +36,9 @@ export function UserMenu() {
       <span className="hidden max-w-40 truncate px-2 text-sm text-muted-foreground sm:inline">
         Hi, {user.name.split(" ")[0]}
       </span>
+      <Button asChild variant="ghost" size="sm">
+        <Link href="/account/orders">My orders</Link>
+      </Button>
       {user.role === "Admin" && (
         <Button asChild variant="ghost" size="sm">
           <Link href="/admin">Admin</Link>

@@ -86,9 +86,13 @@ export const api = {
   getProduct: (id: number) =>
     request<ProductDetail>(`/api/products/${id}`, { cache: "no-store" }),
 
+  // Order calls go through this app's own proxy, which attaches the signed-in user's token.
   createOrder: (body: CreateOrderRequest) =>
-    request<OrderDto>("/api/orders", { method: "POST", body }),
+    request<OrderDto>("/api/proxy/orders", { baseUrl: "", method: "POST", body }),
 
   getOrder: (id: string, signal?: AbortSignal) =>
-    request<OrderDto>(`/api/orders/${id}`, { cache: "no-store", signal }),
+    request<OrderDto>(`/api/proxy/orders/${id}`, { baseUrl: "", cache: "no-store", signal }),
+
+  getMyOrders: (signal?: AbortSignal) =>
+    request<OrderDto[]>("/api/proxy/orders/mine", { baseUrl: "", cache: "no-store", signal }),
 };
