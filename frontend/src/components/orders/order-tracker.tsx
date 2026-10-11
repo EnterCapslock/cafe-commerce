@@ -11,6 +11,8 @@ import { formatPeso } from "@/lib/format";
 import { formatPht } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import type { OrderDto, OrderStatus } from "@/types/api";
+import { useSession } from "@/components/auth/session-provider";
+import { SaveOrderLink } from "@/components/orders/save-order-link";
 
 type State =
   | { status: "loading" }
@@ -38,6 +40,7 @@ function pollDelay(order: OrderDto | null): number | null {
 
 export function OrderTracker({ id }: { id: string }) {
   const [state, setState] = useState<State>({ status: "loading" });
+  const { session } = useSession();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -116,6 +119,10 @@ export function OrderTracker({ id }: { id: string }) {
         </Badge>
       </div>
 
+      {session.status === "anonymous" && order.status !== "Completed" && order.status !== "Cancelled" && (
+        <SaveOrderLink orderId={order.id} />
+      )}
+      
       {stale && <p role="status" className="text-sm text-muted-foreground">Reconnecting…</p>}
 
       <PaymentNotice order={order} />

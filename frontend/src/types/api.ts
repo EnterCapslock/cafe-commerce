@@ -2,6 +2,7 @@ export type ProductCategory = "Coffee" | "Food" | "Merchandise";
 export type OrderStatus = "Pending" | "Preparing" | "ReadyForPickup" | "Completed" | "Cancelled";
 export type PaymentMethod = "Online" | "PayAtCounter";
 export type PaymentStatus = "Unpaid" | "Paid" | "Expired";
+export type Role = "Customer" | "Admin";
 
 export interface VariantDto {
   id: number;
@@ -66,4 +67,18 @@ export interface ProblemDetails {
   status?: number;
   detail?: string;
   errors?: Record<string, string[]>;
+}
+
+export interface UserDto {
+  id: number;
+  name: string;
+  email: string;
+  role: Role;
+}
+
+/** What the API's login/register endpoints return. Only server code ever sees the token. */
+export interface AuthResponse {
+  token: string;
+  expiresAt: string;
+  user: UserDto;
 }

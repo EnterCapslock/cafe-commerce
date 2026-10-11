@@ -24,6 +24,8 @@ export class ApiError extends Error {
 interface RequestOptions {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: unknown;
+  /** Defaults to the .NET API. Pass "" to call this Next.js app's own route handlers. */
+  baseUrl?: string;
   /** Server-side only: cache this response for N seconds. Don't combine with `cache`. */
   revalidate?: number;
   /** Standard fetch cache mode, e.g. "no-store" for data that must never be stale. */
@@ -40,11 +42,11 @@ async function readProblem(response: Response): Promise<ProblemDetails | null> {
 }
 
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = "GET", body, revalidate, cache, signal } = options;
+  const { method = "GET", body, baseUrl = API_URL, revalidate, cache, signal } = options;
 
   let response: Response;
   try {
-    response = await fetch(`${API_URL}${path}`, {
+    response = await fetch(`${baseUrl}${path}`, {
       method,
       headers: {
         Accept: "application/json",

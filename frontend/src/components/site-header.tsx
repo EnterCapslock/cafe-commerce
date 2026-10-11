@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Coffee } from "lucide-react";
+import { UserMenu } from "@/components/auth/user-menu";
 import { CartButton } from "@/components/cart-button";
 import { SITE_NAME } from "@/lib/config";
 
@@ -11,7 +12,10 @@ export function SiteHeader() {
           <Coffee className="size-5" aria-hidden />
           {SITE_NAME}
         </Link>
-        <CartButton />
+        <div className="flex items-center gap-2">
+          <UserMenu />
+          <CartButton />
+        </div>
       </div>
     </header>
   );
