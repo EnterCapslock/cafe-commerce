@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
+    "e2e:report": "playwright show-report",
+    "e2e:reset": "docker compose -f ../docker-compose.yml exec -T db psql -U postgres -c \"DROP DATABASE IF EXISTS cafe_e2e WITH (FORCE)\""
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
@@ -27,6 +31,7 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.0",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

@@ -2,7 +2,6 @@
 
 import { ShieldCheck } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useSession } from "@/components/auth/session-provider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -11,7 +10,6 @@ import { useShopper } from "@/lib/use-shopper";
 /** Full-page message for /cart and /checkout. */
 export function AdminCannotOrder() {
   const { signOut } = useSession();
-  const router = useRouter();
 
   return (
     <div className="mx-auto max-w-md space-y-4 py-16 text-center">
@@ -23,15 +21,9 @@ export function AdminCannotOrder() {
         <Button asChild>
           <Link href="/admin">Go to admin</Link>
         </Button>
-        <Button
-          variant="outline"
-          onClick={async () => {
-            await signOut();
-            router.refresh();
-          }}
-        >
-          Sign out
-        </Button>
+      <Button variant="outline" onClick={() => void signOut()}>
+        Sign out
+      </Button>
       </div>
     </div>
   );

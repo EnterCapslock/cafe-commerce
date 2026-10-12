@@ -37,7 +37,7 @@ public class OrdersController(IOrderService orders) : ControllerBase
             return Problem(
                 statusCode: StatusCodes.Status502BadGateway,
                 title: "Online payment is temporarily unavailable.",
-                detail: "Please try again, or choose to pay at the counter.");
+                detail: "Please try again in a moment.");
         }
 
         if (!result.Succeeded)

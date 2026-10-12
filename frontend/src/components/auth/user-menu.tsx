@@ -1,18 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useSession } from "@/components/auth/session-provider";
 import { Button } from "@/components/ui/button";
 import { useLastOrderId } from "@/lib/last-order";
 
 export function UserMenu() {
   const { session, signOut } = useSession();
-  const router = useRouter();
   const lastOrderId = useLastOrderId();
 
   if (session.status === "loading") {
-    return <div className="h-8 w-20 animate-pulse rounded-md bg-muted" aria-hidden />;
+    return <div data-testid="session-loading" className="h-8 w-20 animate-pulse rounded-md bg-muted" aria-hidden />
   }
 
   if (session.status === "anonymous") {
@@ -46,15 +44,7 @@ export function UserMenu() {
           <Link href="/admin">Admin</Link>
         </Button>
       )}
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={async () => {
-          await signOut();
-          router.push("/");
-          router.refresh();
-        }}
-      >
+      <Button variant="ghost" size="sm" onClick={() => void signOut()}>
         Sign out
       </Button>
     </div>

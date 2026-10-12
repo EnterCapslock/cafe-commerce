@@ -10,7 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { api } from "@/lib/api";
+import { api, ApiError } from "@/lib/api";
 import { describeApiError } from "@/lib/api-errors";
 import { COUNTER_PAYMENT_LIMIT } from "@/lib/config";
 import { formatPeso } from "@/lib/format";
@@ -135,7 +135,11 @@ export function CheckoutForm({
       });
       onPlaced(order);
     } catch (error) {
-      setServerErrors(describeApiError(error));
+      const messages = describeApiError(error);
+      if (error instanceof ApiError && error.status === 502 && counterAllowed) {
+        messages.push("You can also go back and choose to pay at the counter.");
+      }
+      setServerErrors(messages);
       submittingRef.current = false;
       setSubmitting(false);
     }
