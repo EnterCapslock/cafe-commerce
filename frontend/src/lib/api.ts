@@ -1,6 +1,7 @@
 import type {
   CreateOrderRequest,
   OrderDto,
+  OrderStatus,
   ProblemDetails,
   ProductCategory,
   ProductDetail,
@@ -95,4 +96,26 @@ export const api = {
 
   getMyOrders: (signal?: AbortSignal) =>
     request<OrderDto[]>("/api/proxy/orders/mine", { baseUrl: "", cache: "no-store", signal }),
+
+  // ---------- Admin (the API rejects anyone who isn't an admin) ----------
+
+  /** No status = the active board. Completed or Cancelled = history. */
+  getAdminOrders: (params: { status?: OrderStatus; search?: string } = {}, signal?: AbortSignal) => {
+    const qs = new URLSearchParams();
+    if (params.status) qs.set("status", params.status);
+    if (params.search?.trim()) qs.set("search", params.search.trim());
+    const query = qs.toString();
+    return request<OrderDto[]>(`/api/proxy/admin/orders${query ? `?${query}` : ""}`, {
+      baseUrl: "",
+      cache: "no-store",
+      signal,
+    });
+  },
+
+  updateOrderStatus: (id: string, status: OrderStatus) =>
+    request<OrderDto>(`/api/proxy/admin/orders/${id}/status`, {
+      baseUrl: "",
+      method: "PATCH",
+      body: { status },
+    }),
 };

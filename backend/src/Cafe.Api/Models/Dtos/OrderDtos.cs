@@ -28,6 +28,7 @@ public record OrderDto(
     DateTime PickupTime,
     decimal TotalAmount,
     DateTime CreatedAt,
+    DateTime UpdatedAt,
     PaymentMethod PaymentMethod,
     PaymentStatus PaymentStatus,
     string? CheckoutUrl,      // only present while an online order is still unpaid

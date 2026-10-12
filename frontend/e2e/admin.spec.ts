@@ -30,7 +30,7 @@ test("admins can't shop but can view customer orders", async ({ page, request })
   await expect(page.getByRole("link", { name: /^Cart/ })).toHaveCount(0);
 
   await page.goto("/admin");
-  await expect(page.getByRole("heading", { name: "Admin dashboard" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Live orders" })).toBeVisible();
 
   await page.goto("/checkout");
   await expect(page.getByRole("heading", { name: /place orders/ })).toBeVisible();

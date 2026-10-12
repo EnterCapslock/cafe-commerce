@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
+import { AdminNav } from "@/components/admin/admin-nav";
 import { Button } from "@/components/ui/button";
 import { getCurrentUser } from "@/lib/server/session";
 
@@ -30,5 +31,10 @@ async function AdminGate({ children }: { children: ReactNode }) {
     );
   }
 
-  return <>{children}</>;
+  return (
+    <div className="space-y-6">
+      <AdminNav />
+      {children}
+    </div>
+  );
 }

@@ -6,8 +6,10 @@ import { clientIp, readJsonBody, rejectCrossOrigin } from "@/lib/server/route-he
 
 export const maxDuration = 60;
 
-// Only these API areas can be reached through the proxy. Milestone 6 adds "admin".
-const ALLOWED_PREFIXES = ["orders"];
+// Only these API areas can be reached through the proxy. Admin endpoints still need an admin token:
+// the API enforces that on every request, whatever reaches it.
+const ALLOWED_PREFIXES = ["orders", "admin"];
+const METHODS_WITH_BODY = new Set(["POST", "PUT", "PATCH"]);
 
 type Context = { params: Promise<{ path: string[] }> };
 
@@ -25,9 +27,11 @@ async function forward(request: NextRequest, { params }: Context): Promise<NextR
     const blocked = rejectCrossOrigin(request);
     if (blocked) return blocked;
 
-    const parsed = await readJsonBody(request);
-    if (!parsed) return NextResponse.json({ title: "Invalid request." }, { status: 400 });
-    body = parsed;
+    if (METHODS_WITH_BODY.has(request.method)) {
+      const parsed = await readJsonBody(request);
+      if (!parsed) return NextResponse.json({ title: "Invalid request." }, { status: 400 });
+      body = parsed;
+    }
   }
 
   const token = request.cookies.get(SESSION_COOKIE)?.value;
@@ -64,3 +68,6 @@ async function forward(request: NextRequest, { params }: Context): Promise<NextR
 
 export const GET = forward;
 export const POST = forward;
+export const PUT = forward;
+export const PATCH = forward;
+export const DELETE = forward;

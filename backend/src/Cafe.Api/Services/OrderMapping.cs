@@ -7,7 +7,7 @@ internal static class OrderMapping
 {
     public static OrderDto ToDto(this Order o) => new(
         o.Id, o.Status, o.CustomerName, o.CustomerEmail, o.CustomerPhone,
-        o.PickupTime, o.TotalAmount, o.CreatedAt,
+        o.PickupTime, o.TotalAmount, o.CreatedAt, o.UpdatedAt,
         o.PaymentMethod, o.PaymentStatus,
         o.PaymentMethod == PaymentMethod.Online && o.PaymentStatus == PaymentStatus.Unpaid ? o.CheckoutUrl : null,
         o.PaidAt,

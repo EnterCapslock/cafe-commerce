@@ -44,6 +44,7 @@ export interface OrderDto {
   pickupTime: string;
   totalAmount: number;
   createdAt: string;
+  updatedAt: string;
   paymentMethod: PaymentMethod;
   paymentStatus: PaymentStatus;
   checkoutUrl: string | null;
