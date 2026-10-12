@@ -36,9 +36,11 @@ export function UserMenu() {
       <span className="hidden max-w-40 truncate px-2 text-sm text-muted-foreground sm:inline">
         Hi, {user.name.split(" ")[0]}
       </span>
-      <Button asChild variant="ghost" size="sm">
-        <Link href="/account/orders">My orders</Link>
-      </Button>
+      {user.role === "Customer" && (
+        <Button asChild variant="ghost" size="sm">
+          <Link href="/account/orders">My orders</Link>
+        </Button>
+      )}
       {user.role === "Admin" && (
         <Button asChild variant="ghost" size="sm">
           <Link href="/admin">Admin</Link>

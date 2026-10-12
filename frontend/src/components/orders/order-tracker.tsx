@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CircleAlert, CircleCheck, CircleX, CreditCard } from "lucide-react";
+import { CircleAlert, CircleCheck, CircleX, CreditCard, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -41,7 +41,8 @@ function pollDelay(order: OrderDto | null): number | null {
 export function OrderTracker({ id }: { id: string }) {
   const [state, setState] = useState<State>({ status: "loading" });
   const { session } = useSession();
-
+  const isAdmin = session.status === "authenticated" && session.user.role === "Admin";
+  
   useEffect(() => {
     const controller = new AbortController();
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -123,12 +124,22 @@ export function OrderTracker({ id }: { id: string }) {
           <h1 className="text-3xl font-semibold tracking-tight">
             Order <span data-testid="order-code">{order.id.slice(0, 8).toUpperCase()}</span>
           </h1>
-          <p className="text-sm text-muted-foreground">Keep this page&apos;s link to check on your order later.</p>
+          <p className="text-sm text-muted-foreground">
+            {isAdmin ? "Viewing as staff." : "Keep this page's link to check on your order later."}
+          </p>
         </div>
         <Badge variant={order.status === "Cancelled" ? "destructive" : "secondary"} data-testid="order-status">
           {awaitingPayment ? "Awaiting payment" : STATUS_LABEL[order.status]}
         </Badge>
       </div>
+
+      {isAdmin && (
+        <Alert>
+          <ShieldCheck aria-hidden />
+          <AlertTitle>Admin view</AlertTitle>
+          <AlertDescription>You&apos;re viewing this customer&apos;s order as staff.</AlertDescription>
+        </Alert>
+      )}
 
       {session.status === "anonymous" && order.status !== "Completed" && order.status !== "Cancelled" && (
         <SaveOrderLink orderId={order.id} />
@@ -136,7 +147,7 @@ export function OrderTracker({ id }: { id: string }) {
 
       {stale && <p role="status" className="text-sm text-muted-foreground">Reconnecting…</p>}
 
-      <PaymentNotice order={order} />
+      <PaymentNotice order={order} isAdmin={isAdmin} />
 
       {order.status !== "Cancelled" && (
         <ol className="grid grid-cols-4 gap-2 text-center text-xs" aria-label="Order progress">
@@ -161,6 +172,18 @@ export function OrderTracker({ id }: { id: string }) {
             <dt className="text-muted-foreground">Name</dt>
             <dd>{order.customerName}</dd>
           </div>
+          {isAdmin && (
+            <>
+              <div className="flex justify-between gap-4">
+                <dt className="text-muted-foreground">Email</dt>
+                <dd>{order.customerEmail}</dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt className="text-muted-foreground">Phone</dt>
+                <dd>{order.customerPhone}</dd>
+              </div>
+            </>
+          )}
           <div className="flex justify-between gap-4">
             <dt className="text-muted-foreground">Payment</dt>
             <dd>{order.paymentMethod === "Online" ? "Online" : "At the counter"}</dd>
@@ -184,12 +207,14 @@ export function OrderTracker({ id }: { id: string }) {
         </div>
       </section>
 
-      <Button asChild variant="outline"><Link href="/">Back to the menu</Link></Button>
+      <Button asChild variant="outline">
+        <Link href={isAdmin ? "/admin" : "/"}>{isAdmin ? "Back to admin" : "Back to the menu"}</Link>
+      </Button>
     </div>
   );
 }
 
-function PaymentNotice({ order }: { order: OrderDto }) {
+function PaymentNotice({ order, isAdmin }: { order: OrderDto; isAdmin: boolean }) {
   if (order.status === "Cancelled") {
     return (
       <Alert variant="destructive">
@@ -207,6 +232,17 @@ function PaymentNotice({ order }: { order: OrderDto }) {
   }
 
   if (order.paymentMethod === "Online" && order.paymentStatus === "Unpaid") {
+    if (isAdmin) {
+      return (
+        <Alert>
+          <CreditCard aria-hidden />
+          <AlertTitle>Awaiting customer payment</AlertTitle>
+          <AlertDescription>
+            The customer hasn&apos;t paid yet. The order is cancelled if payment doesn&apos;t arrive in time.
+          </AlertDescription>
+        </Alert>
+      );
+    }
     return (
       <Alert>
         <CreditCard aria-hidden />

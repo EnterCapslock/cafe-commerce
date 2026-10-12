@@ -2,18 +2,18 @@
 
 import { CreditCard } from "lucide-react";
 import Link from "next/link";
-import { useSession } from "@/components/auth/session-provider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { formatPeso } from "@/lib/format";
 import { useMyOrders } from "@/lib/use-my-orders";
+import { useShopper } from "@/lib/use-shopper";
 
 /** For signed-in customers only: reminds them of an online order that's still waiting for payment. */
 export function UnpaidOrderNotice() {
-  const { session } = useSession();
-  const { state } = useMyOrders(session.status === "authenticated");
+  const { customerId } = useShopper();
+  const { state } = useMyOrders(customerId);
 
-  if (session.status !== "authenticated" || state.status !== "ready") return null;
+  if (customerId === null || state.status !== "ready") return null;
 
   const unpaid = state.orders.filter(
     (o) => o.paymentMethod === "Online" && o.paymentStatus === "Unpaid" && o.status !== "Cancelled",

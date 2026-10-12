@@ -19,8 +19,17 @@ public class OrdersController(IOrderService orders) : ControllerBase
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status422UnprocessableEntity)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status502BadGateway)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<OrderDto>> Create(CreateOrderRequest request, CancellationToken ct)
     {
+        if (User.IsInRole("Admin"))
+        {
+            return Problem(
+                statusCode: StatusCodes.Status403Forbidden,
+                title: "Admin accounts can't place orders.",
+                detail: "Please sign in with a customer account to place an order.");
+        }
+
         var result = await orders.CreateAsync(request, CurrentUserId(), ct);
 
         if (result.PaymentUnavailable)

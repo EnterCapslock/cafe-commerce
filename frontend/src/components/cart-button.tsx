@@ -4,11 +4,15 @@ import Link from "next/link";
 import { ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useHydrated } from "@/lib/use-hydrated";
+import { useShopper } from "@/lib/use-shopper";
 import { selectCount, useCartStore } from "@/stores/cart-store";
 
 export function CartButton() {
   const stored = useCartStore(selectCount);
   const count = useHydrated() ? stored : 0;
+  const { isAdmin } = useShopper();
+
+  if (isAdmin) return null;
 
   return (
     <Button asChild variant="outline" size="sm">

@@ -8,11 +8,13 @@ import { CategoryIcon } from "@/components/menu/category-icon";
 import { ProductDialog } from "@/components/menu/product-dialog";
 import { formatPeso } from "@/lib/format";
 import type { ProductSummary } from "@/types/api";
+import { useShopper } from "@/lib/use-shopper";
 
 export function ProductCard({ product }: { product: ProductSummary }) {
   const [open, setOpen] = useState(false);
   const soldOut = !product.isAvailable;
   const hasOptions = product.variantCount > 1;
+  const { isAdmin } = useShopper();
 
   return (
     <>
@@ -32,11 +34,13 @@ export function ProductCard({ product }: { product: ProductSummary }) {
           </p>
           {soldOut && <Badge variant="secondary">Sold out</Badge>}
         </CardContent>
-        <CardFooter>
-          <Button className="w-full" disabled={soldOut} onClick={() => setOpen(true)}>
-            {hasOptions ? "Choose options" : "Add to order"}
-          </Button>
-        </CardFooter>
+        {!isAdmin && (
+          <CardFooter>
+            <Button className="w-full" disabled={soldOut} onClick={() => setOpen(true)}>
+              {hasOptions ? "Choose options" : "Add to order"}
+            </Button>
+          </CardFooter>
+        )}
       </Card>
       <ProductDialog product={product} open={open} onOpenChange={setOpen} />
     </>

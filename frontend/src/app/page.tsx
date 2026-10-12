@@ -4,6 +4,7 @@ import { ProductCard } from "@/components/menu/product-card";
 import { api } from "@/lib/api";
 import type { ProductCategory } from "@/types/api";
 import { UnpaidOrderNotice } from "@/components/orders/unpaid-order-notice";
+import { AdminOrderingNotice } from "@/components/auth/admin-cannot-order";
 
 const CATEGORIES: readonly ProductCategory[] = ["Coffee", "Food", "Merchandise"];
 
@@ -21,7 +22,8 @@ export default function MenuPage({ searchParams }: { searchParams: SearchParams 
         <h1 className="text-3xl font-semibold tracking-tight">Our menu</h1>
         <p className="text-muted-foreground">Order ahead and pick up in store. Pay online or at the counter.</p>
       </div>
-
+      
+      <AdminOrderingNotice />
       <UnpaidOrderNotice />
 
       <Suspense

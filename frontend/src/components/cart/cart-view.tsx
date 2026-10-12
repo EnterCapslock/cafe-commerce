@@ -7,14 +7,19 @@ import { Button } from "@/components/ui/button";
 import { formatPeso } from "@/lib/format";
 import { useHydrated } from "@/lib/use-hydrated";
 import { selectSubtotal, useCartStore } from "@/stores/cart-store";
+import { AdminCannotOrder } from "@/components/auth/admin-cannot-order";
+import { useShopper } from "@/lib/use-shopper";
 
 export function CartView() {
+  const { isAdmin } = useShopper();
   const hydrated = useHydrated();
   const items = useCartStore((s) => s.items);
   const subtotal = useCartStore(selectSubtotal);
   const setQuantity = useCartStore((s) => s.setQuantity);
   const remove = useCartStore((s) => s.remove);
   const clear = useCartStore((s) => s.clear);
+
+  if (isAdmin) return <AdminCannotOrder />;
 
   if (!hydrated) {
     return <div className="h-48 animate-pulse rounded-xl bg-muted" aria-busy="true" />;

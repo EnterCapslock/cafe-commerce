@@ -4,12 +4,14 @@ import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { AdminCannotOrder } from "@/components/auth/admin-cannot-order";
 import { useSession } from "@/components/auth/session-provider";
 import { CheckoutForm } from "@/components/checkout/checkout-form";
 import { CheckoutSummary } from "@/components/checkout/checkout-summary";
 import { Button } from "@/components/ui/button";
 import { rememberLastOrder, useLastOrderId } from "@/lib/last-order";
 import { useHydrated } from "@/lib/use-hydrated";
+import { useShopper } from "@/lib/use-shopper";
 import { useCartStore } from "@/stores/cart-store";
 import type { OrderDto } from "@/types/api";
 
@@ -41,6 +43,7 @@ export function CheckoutPage() {
   const router = useRouter();
   const hydrated = useHydrated();
   const { session } = useSession();
+  const { user, isAdmin } = useShopper();
   const lineCount = useCartStore((s) => s.items.length);
   const clear = useCartStore((s) => s.clear);
   const lastOrderId = useLastOrderId();
@@ -64,7 +67,7 @@ export function CheckoutPage() {
   function handlePlaced(order: OrderDto) {
     const checkoutUrl = order.paymentMethod === "Online" ? order.checkoutUrl : null;
     placedOrderId.current = order.id;
-    rememberLastOrder(order.id);
+    if (!user) rememberLastOrder(order.id); // only guest orders go in the "Track order" list
     setRedirect(checkoutUrl ? "payment" : "order");
     clear();
 
@@ -82,6 +85,10 @@ export function CheckoutPage() {
 
   if (redirect) {
     return <RedirectScreen kind={redirect} />;
+  }
+
+  if (isAdmin) {
+    return <AdminCannotOrder />;
   }
 
   if (lineCount === 0) {
@@ -105,9 +112,11 @@ export function CheckoutPage() {
 
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_22rem]">
+      {/* The key makes the form start over whenever the signed-in user changes. */}
       <CheckoutForm
+        key={user ? `user-${user.id}` : "guest"}
         onPlaced={handlePlaced}
-        user={session.status === "authenticated" ? session.user : null}
+        user={user}
       />
       <CheckoutSummary />
     </div>

@@ -9,6 +9,7 @@ import { formatPeso } from "@/lib/format";
 import { formatPht } from "@/lib/time";
 import { useMyOrders } from "@/lib/use-my-orders";
 import type { OrderDto, OrderStatus } from "@/types/api";
+import { useShopper } from "@/lib/use-shopper";
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
   Pending: "Order received",
@@ -64,7 +65,8 @@ function OrderCard({ order }: { order: OrderDto }) {
 
 export function MyOrders() {
   const { session } = useSession();
-  const { state, reload } = useMyOrders(session.status === "authenticated");
+  const { customerId, isAdmin } = useShopper();
+  const { state, reload } = useMyOrders(customerId);
 
   if (session.status === "loading") {
     return <div className="h-40 animate-pulse rounded-xl bg-muted" aria-busy="true" />;
@@ -76,6 +78,19 @@ export function MyOrders() {
         <p className="text-muted-foreground">Sign in to see your orders.</p>
         <Button asChild>
           <Link href="/login?next=/account/orders">Sign in</Link>
+        </Button>
+      </div>
+    );
+  }
+
+  if (isAdmin) {
+    return (
+      <div className="space-y-4 py-12 text-center">
+        <p className="text-muted-foreground">
+          Admin accounts don&apos;t have customer orders. Manage orders from the admin dashboard.
+        </p>
+        <Button asChild>
+          <Link href="/admin">Go to admin</Link>
         </Button>
       </div>
     );
