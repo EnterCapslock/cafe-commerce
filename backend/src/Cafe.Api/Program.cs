@@ -33,6 +33,7 @@ builder.Services.AddJwtAuth(builder.Configuration);
 // --- Rate limiting ---
 var authPerMinute = builder.Configuration.GetValue("RateLimits:AuthPerMinute", 10);
 var ordersPerMinute = builder.Configuration.GetValue("RateLimits:OrdersPerMinute", 20);
+
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -64,10 +65,9 @@ builder.Services.AddCors(options =>
 builder.Services.AddHealthChecks();
 
 // --- Options & clock ---
-builder.Services.Configure<OrderOptions>(
-    builder.Configuration.GetSection(OrderOptions.SectionName));
-builder.Services.Configure<PayMongoOptions>(
-    builder.Configuration.GetSection(PayMongoOptions.SectionName));
+builder.Services.Configure<OrderOptions>(builder.Configuration.GetSection(OrderOptions.SectionName));
+builder.Services.Configure<PayMongoOptions>(builder.Configuration.GetSection(PayMongoOptions.SectionName));
+builder.Services.Configure<CloudinaryOptions>(builder.Configuration.GetSection(CloudinaryOptions.SectionName));
 builder.Services.AddSingleton(TimeProvider.System);
 
 // --- Payments ---
@@ -83,6 +83,9 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<ITokenService, TokenService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IAdminProductService, AdminProductService>();
+builder.Services.AddScoped<IAdminOrderService, AdminOrderService>();
+builder.Services.AddSingleton<IImageStorage, CloudinaryImageStorage>();
 builder.Services.AddHostedService<OrderCleanupService>();
 
 var app = builder.Build();
