@@ -4,14 +4,17 @@ import { addToCart, appReady } from "./helpers";
 test("the menu loads and filters by category", async ({ page }) => {
   await page.goto("/");
   await appReady(page);
-  await expect(page.getByTestId("product-card")).toHaveCount(15);
+
+  // Other tests add temporary items, so assert "at least the 15 seeded items", never an exact total.
+  const cards = page.getByTestId("product-card");
+  await expect.poll(() => cards.count()).toBeGreaterThanOrEqual(15);
 
   await page.getByRole("link", { name: "Coffee", exact: true }).click();
   await expect(page).toHaveURL(/category=Coffee/);
-  await expect(page.getByTestId("product-card")).toHaveCount(7);
+  await expect(cards).toHaveCount(7); // test items are always Merchandise
 
   await page.getByRole("link", { name: "All", exact: true }).click();
-  await expect(page.getByTestId("product-card")).toHaveCount(15);
+  await expect.poll(() => cards.count()).toBeGreaterThanOrEqual(15);
 });
 
 test("the cart survives a refresh and totals use peso prices", async ({ page }) => {
