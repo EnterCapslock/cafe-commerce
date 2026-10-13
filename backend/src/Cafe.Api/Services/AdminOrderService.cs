@@ -8,15 +8,6 @@ namespace Cafe.Api.Services;
 public class AdminOrderService(AppDbContext db, TimeProvider time, ILogger<AdminOrderService> logger)
     : IAdminOrderService
 {
-    // The only moves allowed. Completed and Cancelled are final.
-    private static readonly Dictionary<OrderStatus, OrderStatus[]> Allowed = new()
-    {
-        [OrderStatus.Pending] = [OrderStatus.Preparing, OrderStatus.Cancelled],
-        [OrderStatus.Preparing] = [OrderStatus.ReadyForPickup, OrderStatus.Cancelled],
-        [OrderStatus.ReadyForPickup] = [OrderStatus.Completed, OrderStatus.Cancelled],
-        [OrderStatus.Completed] = [],
-        [OrderStatus.Cancelled] = []
-    };
 
     public async Task<IReadOnlyList<OrderDto>> ListAsync(
         OrderStatus? status, string? search, int limit, CancellationToken ct)
@@ -56,11 +47,7 @@ public class AdminOrderService(AppDbContext db, TimeProvider time, ILogger<Admin
         var order = await db.Orders.AsNoTracking().FirstOrDefaultAsync(o => o.Id == id, ct);
         if (order is null) return ServiceResult<OrderDto>.NotFound();
 
-        if (!Allowed[order.Status].Contains(target))
-        {
-            return ServiceResult<OrderDto>.Conflict(
-                $"An order that is {order.Status} can't be changed to {target}.");
-        }
+        if (!OrderStatusRules.CanMove(order.Status, target))
 
         if (order.PaymentMethod == PaymentMethod.Online
             && order.PaymentStatus != PaymentStatus.Paid

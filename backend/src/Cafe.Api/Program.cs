@@ -7,6 +7,7 @@ using Cafe.Api.Services;
 using Cafe.Api.Services.Interfaces;
 using Cafe.Api.Validators;
 using FluentValidation;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Scalar.AspNetCore;
@@ -62,7 +63,7 @@ builder.Services.AddCors(options =>
         .AllowAnyMethod()));
 
 // --- Health ---
-builder.Services.AddHealthChecks();
+builder.Services.AddHealthChecks().AddDbContextCheck<AppDbContext>("database");
 
 // --- Options & clock ---
 builder.Services.Configure<OrderOptions>(builder.Configuration.GetSection(OrderOptions.SectionName));
@@ -112,7 +113,8 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-app.MapHealthChecks("/health");
+app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false });   // is the process up?
+app.MapHealthChecks("/health", new HealthCheckOptions { ResponseWriter = HealthResponseWriter.WriteAsync }); // can it reach the database?
 
 app.Run();
 

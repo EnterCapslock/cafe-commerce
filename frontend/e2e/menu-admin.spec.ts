@@ -26,7 +26,6 @@ test("an admin creates an item with variants, and customers see it and its avail
     await expect(admin.getByRole("heading", { name: "New menu item" })).toBeVisible();
 
     // The form checks input before anything reaches the server
-    // The form checks input before anything reaches the server
     await admin.getByRole("button", { name: "Create item" }).click();
     await expect(admin.getByRole("alert").filter({ hasText: "Enter a name." }).first()).toBeVisible();
     await expect(admin.getByRole("alert").filter({ hasText: "Enter a description." })).toBeVisible();
