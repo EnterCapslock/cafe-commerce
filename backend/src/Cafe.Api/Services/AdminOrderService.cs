@@ -8,7 +8,6 @@ namespace Cafe.Api.Services;
 public class AdminOrderService(AppDbContext db, TimeProvider time, ILogger<AdminOrderService> logger)
     : IAdminOrderService
 {
-
     public async Task<IReadOnlyList<OrderDto>> ListAsync(
         OrderStatus? status, string? search, int limit, CancellationToken ct)
     {
@@ -47,8 +46,14 @@ public class AdminOrderService(AppDbContext db, TimeProvider time, ILogger<Admin
         var order = await db.Orders.AsNoTracking().FirstOrDefaultAsync(o => o.Id == id, ct);
         if (order is null) return ServiceResult<OrderDto>.NotFound();
 
+        // Check 1: only the documented moves are allowed (Completed and Cancelled are final).
         if (!OrderStatusRules.CanMove(order.Status, target))
+        {
+            return ServiceResult<OrderDto>.Conflict(
+                $"An order that is {order.Status} can't be changed to {target}.");
+        }
 
+        // Check 2: an online order must be paid before it can advance. Cancelling is always allowed.
         if (order.PaymentMethod == PaymentMethod.Online
             && order.PaymentStatus != PaymentStatus.Paid
             && target != OrderStatus.Cancelled)
@@ -59,8 +64,9 @@ public class AdminOrderService(AppDbContext db, TimeProvider time, ILogger<Admin
         var now = time.GetUtcNow().UtcDateTime;
         var collectPayment = target == OrderStatus.Completed && order.PaymentMethod == PaymentMethod.PayAtCounter;
 
-        // Conditional on the status we just read: if another barista changed the order in the
-        // meantime, zero rows match and we report it instead of overwriting their change.
+        // Check 3: the update only applies if the status is still what we just read. If another
+        // barista changed the order in the meantime, zero rows match and we report it instead of
+        // overwriting their change.
         var matching = db.Orders.Where(o => o.Id == id && o.Status == order.Status);
 
         var rows = collectPayment

@@ -26,7 +26,7 @@ public sealed class OrderCleanupService(
         while (await timer.WaitForNextTickAsync(stoppingToken));
     }
 
-    private async Task RunOnceAsync(OrderOptions o, CancellationToken ct)
+    internal async Task RunOnceAsync(OrderOptions o, CancellationToken ct)
     {
         using var scope = scopes.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
