@@ -83,3 +83,37 @@ export interface AuthResponse {
   expiresAt: string;
   user: UserDto;
 }
+
+export interface AdminVariant {
+  id: number;
+  name: string;
+  price: number;
+  isAvailable: boolean;
+  sortOrder: number;
+}
+
+export interface AdminProduct {
+  id: number;
+  name: string;
+  description: string;
+  imageUrl: string | null;
+  category: ProductCategory;
+  isActive: boolean;
+  createdAt: string;
+  variants: AdminVariant[];
+}
+
+export interface VariantInput {
+  id?: number; // present for an existing variant, omitted for a new one
+  name: string;
+  price: number;
+  isAvailable: boolean;
+}
+
+export interface ProductInput {
+  name: string;
+  description: string;
+  category: ProductCategory;
+  isActive: boolean;
+  variants: VariantInput[];
+}

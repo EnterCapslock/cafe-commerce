@@ -19,6 +19,7 @@ interface CartState {
   add: (item: NewCartItem, quantity?: number) => void;
   setQuantity: (variantId: number, quantity: number) => void;
   remove: (variantId: number) => void;
+  setPrice: (variantId: number, unitPrice: number) => void;
   clear: () => void;
 }
 
@@ -56,6 +57,11 @@ export const useCartStore = create<CartState>()(
 
       remove: (variantId) =>
         set((state) => ({ items: state.items.filter((i) => i.variantId !== variantId) })),
+
+      setPrice: (variantId, unitPrice) =>
+        set((state) => ({
+          items: state.items.map((i) => (i.variantId === variantId ? { ...i, unitPrice } : i)),
+        })),
 
       clear: () => set({ items: [] }),
     }),

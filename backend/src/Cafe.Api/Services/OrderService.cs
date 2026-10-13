@@ -33,7 +33,7 @@ public class OrderService(
         foreach (var line in request.Items)
         {
             if (!variants.TryGetValue(line.VariantId, out var v))
-                errors.Add($"Item {line.VariantId} does not exist.");
+                errors.Add("An item in your cart is no longer on the menu.");
             else if (!v.IsAvailable || !v.Product.IsActive)
                 errors.Add($"{v.Product.Name} ({v.Name}) is currently unavailable.");
         }

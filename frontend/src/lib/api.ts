@@ -1,10 +1,12 @@
 import type {
+  AdminProduct,
   CreateOrderRequest,
   OrderDto,
   OrderStatus,
   ProblemDetails,
   ProductCategory,
   ProductDetail,
+  ProductInput,
   ProductSummary,
 } from "@/types/api";
 
@@ -24,6 +26,7 @@ export class ApiError extends Error {
 
 interface RequestOptions {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+  /** A plain object is sent as JSON; a FormData is sent as multipart (for file uploads). */
   body?: unknown;
   /** Defaults to the .NET API. Pass "" to call this Next.js app's own route handlers. */
   baseUrl?: string;
@@ -44,6 +47,7 @@ async function readProblem(response: Response): Promise<ProblemDetails | null> {
 
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = "GET", body, baseUrl = API_URL, revalidate, cache, signal } = options;
+  const isForm = typeof FormData !== "undefined" && body instanceof FormData;
 
   let response: Response;
   try {
@@ -51,9 +55,10 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
       method,
       headers: {
         Accept: "application/json",
-        ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
+        // For FormData the browser sets the multipart header (with its boundary) itself.
+        ...(body !== undefined && !isForm ? { "Content-Type": "application/json" } : {}),
       },
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: body === undefined ? undefined : isForm ? (body as FormData) : JSON.stringify(body),
       signal,
       ...(cache !== undefined ? { cache } : {}),
       ...(revalidate !== undefined ? { next: { revalidate } } : {}),
@@ -118,4 +123,29 @@ export const api = {
       method: "PATCH",
       body: { status },
     }),
+
+  getAdminProducts: (signal?: AbortSignal) =>
+    request<AdminProduct[]>("/api/proxy/admin/products", { baseUrl: "", cache: "no-store", signal }),
+
+  getAdminProduct: (id: number, signal?: AbortSignal) =>
+    request<AdminProduct>(`/api/proxy/admin/products/${id}`, { baseUrl: "", cache: "no-store", signal }),
+
+  createProduct: (body: ProductInput) =>
+    request<AdminProduct>("/api/proxy/admin/products", { baseUrl: "", method: "POST", body }),
+
+  updateProduct: (id: number, body: ProductInput) =>
+    request<AdminProduct>(`/api/proxy/admin/products/${id}`, { baseUrl: "", method: "PUT", body }),
+
+  deleteProduct: (id: number) =>
+    request<void>(`/api/proxy/admin/products/${id}`, { baseUrl: "", method: "DELETE" }),
+
+  // Files go through their own route handler, because the JSON proxy can't carry them.
+  uploadProductImage: (id: number, file: File) => {
+    const form = new FormData();
+    form.append("file", file, file.name);
+    return request<AdminProduct>(`/api/upload/products/${id}/image`, { baseUrl: "", method: "POST", body: form });
+  },
+
+  removeProductImage: (id: number) =>
+    request<AdminProduct>(`/api/proxy/admin/products/${id}/image`, { baseUrl: "", method: "DELETE" }),
 };

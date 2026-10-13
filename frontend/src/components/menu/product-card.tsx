@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { CategoryIcon } from "@/components/menu/category-icon";
 import { ProductDialog } from "@/components/menu/product-dialog";
+import { ProductImage } from "@/components/product-image"
 import { formatPeso } from "@/lib/format";
 import type { ProductSummary } from "@/types/api";
 import { useShopper } from "@/lib/use-shopper";
@@ -20,8 +21,15 @@ export function ProductCard({ product }: { product: ProductSummary }) {
     <>
       <Card className="flex h-full flex-col overflow-hidden" data-testid="product-card">
         {/* Product photos arrive with image upload in Milestone 6. */}
-        <div className="flex h-32 items-center justify-center bg-muted text-muted-foreground">
-          <CategoryIcon category={product.category} className="size-10" />
+        <div className="relative flex h-40 items-center justify-center overflow-hidden bg-muted text-muted-foreground">
+          {product.imageUrl ? (
+            <ProductImage
+              url={product.imageUrl}
+              sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+            />
+          ) : (
+            <CategoryIcon category={product.category} className="size-10" />
+          )}
         </div>
         <CardHeader>
           <CardTitle>{product.name}</CardTitle>

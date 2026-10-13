@@ -8,6 +8,7 @@ import { formatPeso } from "@/lib/format";
 import { useHydrated } from "@/lib/use-hydrated";
 import { selectSubtotal, useCartStore } from "@/stores/cart-store";
 import { AdminCannotOrder } from "@/components/auth/admin-cannot-order";
+import { CartCheckNotice } from "@/components/cart/cart-check-notice";
 import { useShopper } from "@/lib/use-shopper";
 
 export function CartView() {
@@ -39,56 +40,59 @@ export function CartView() {
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1fr_20rem]">
-      <ul className="divide-y rounded-xl border" aria-label="Items in your cart">
-        {items.map((item) => (
-          <li
-            key={item.variantId}
-            data-testid="cart-line"
-            className="flex flex-wrap items-center justify-between gap-4 p-4"
-          >
-            <div>
-              <p className="font-medium">{item.productName}</p>
-              <p className="text-sm text-muted-foreground">
-                {item.variantName} · {formatPeso(item.unitPrice)}
-              </p>
-            </div>
-            <div className="flex items-center gap-4">
-              <QuantityStepper
-                value={item.quantity}
-                label={`${item.productName} (${item.variantName})`}
-                onChange={(q) => setQuantity(item.variantId, q)}
-              />
-              <p className="w-20 text-right font-medium">{formatPeso(item.unitPrice * item.quantity)}</p>
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label={`Remove ${item.productName} (${item.variantName})`}
-                onClick={() => remove(item.variantId)}
-              >
-                <Trash2 aria-hidden />
-              </Button>
-            </div>
-          </li>
-        ))}
-      </ul>
+    <div className="space-y-6">
+      <CartCheckNotice />
+      <div className="grid gap-8 lg:grid-cols-[1fr_20rem]">
+        <ul className="divide-y rounded-xl border" aria-label="Items in your cart">
+          {items.map((item) => (
+            <li
+              key={item.variantId}
+              data-testid="cart-line"
+              className="flex flex-wrap items-center justify-between gap-4 p-4"
+            >
+              <div>
+                <p className="font-medium">{item.productName}</p>
+                <p className="text-sm text-muted-foreground">
+                  {item.variantName} · {formatPeso(item.unitPrice)}
+                </p>
+              </div>
+              <div className="flex items-center gap-4">
+                <QuantityStepper
+                  value={item.quantity}
+                  label={`${item.productName} (${item.variantName})`}
+                  onChange={(q) => setQuantity(item.variantId, q)}
+                />
+                <p className="w-20 text-right font-medium">{formatPeso(item.unitPrice * item.quantity)}</p>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={`Remove ${item.productName} (${item.variantName})`}
+                  onClick={() => remove(item.variantId)}
+                >
+                  <Trash2 aria-hidden />
+                </Button>
+              </div>
+            </li>
+          ))}
+        </ul>
 
-      <aside className="h-fit space-y-4 rounded-xl border p-4">
-        <h2 className="text-lg font-medium">Summary</h2>
-        <div className="flex items-center justify-between">
-          <span className="text-muted-foreground">Subtotal</span>
-          <span className="text-lg font-semibold" data-testid="cart-subtotal">{formatPeso(subtotal)}</span>
-        </div>
-        <p className="text-sm text-muted-foreground">
-          Prices are confirmed when you place your order. VAT is included.
-        </p>
-        <Button asChild className="w-full">
-          <Link href="/checkout">Checkout</Link>
-        </Button>
-        <Button variant="ghost" className="w-full" onClick={clear}>
-          Clear cart
-        </Button>
-      </aside>
+        <aside className="h-fit space-y-4 rounded-xl border p-4">
+          <h2 className="text-lg font-medium">Summary</h2>
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground">Subtotal</span>
+            <span className="text-lg font-semibold" data-testid="cart-subtotal">{formatPeso(subtotal)}</span>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Prices are confirmed when you place your order. VAT is included.
+          </p>
+          <Button asChild className="w-full">
+            <Link href="/checkout">Checkout</Link>
+          </Button>
+          <Button variant="ghost" className="w-full" onClick={clear}>
+            Clear cart
+          </Button>
+        </aside>
+      </div>
     </div>
   );
 }

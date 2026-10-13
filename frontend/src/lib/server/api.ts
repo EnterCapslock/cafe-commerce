@@ -30,3 +30,18 @@ export async function callApi(path: string, opts: CallOptions = {}): Promise<Res
     return null;
   }
 }
+
+/** Sends a multipart form to the .NET API from the Next.js server. Returns null if it can't be reached. */
+export async function callApiForm(path: string, form: FormData, token: string): Promise<Response | null> {
+  try {
+    return await fetch(`${API_URL}${path}`, {
+      method: "POST",
+      headers: { Accept: "application/json", Authorization: `Bearer ${token}` }, // fetch sets the multipart header
+      body: form,
+      cache: "no-store",
+      signal: AbortSignal.timeout(55_000),
+    });
+  } catch {
+    return null;
+  }
+}

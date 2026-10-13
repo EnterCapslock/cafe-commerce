@@ -6,4 +6,6 @@ public interface IProductService
 {
     Task<IReadOnlyList<ProductSummaryDto>> GetMenuAsync(ProductCategory? category, CancellationToken ct);
     Task<ProductDetailDto?> GetByIdAsync(int id, CancellationToken ct);
+
+    Task<IReadOnlyList<VariantCheckDto>> CheckVariantsAsync(IReadOnlyCollection<int> variantIds, CancellationToken ct);
 }

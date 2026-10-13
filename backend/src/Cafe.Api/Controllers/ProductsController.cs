@@ -26,4 +26,12 @@ public class ProductsController(IProductService products) : ControllerBase
         var product = await products.GetByIdAsync(id, ct);
         return product is null ? NotFound() : Ok(product);
     }
+
+    /// <summary>Current availability and price for cart lines. Variants that no longer exist come back unavailable.</summary>
+    [HttpPost("check")]
+    [ProducesResponseType<IReadOnlyList<VariantCheckDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<IReadOnlyList<VariantCheckDto>>> Check(
+        VariantCheckRequest request, CancellationToken ct)
+        => Ok(await products.CheckVariantsAsync(request.VariantIds, ct));
 }

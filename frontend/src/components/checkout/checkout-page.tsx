@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { AdminCannotOrder } from "@/components/auth/admin-cannot-order";
 import { useSession } from "@/components/auth/session-provider";
+import { CartCheckNotice } from "@/components/cart/cart-check-notice";
 import { CheckoutForm } from "@/components/checkout/checkout-form";
 import { CheckoutSummary } from "@/components/checkout/checkout-summary";
 import { Button } from "@/components/ui/button";
@@ -110,15 +111,18 @@ export function CheckoutPage() {
     );
   }
 
-  return (
-    <div className="grid gap-8 lg:grid-cols-[1fr_22rem]">
-      {/* The key makes the form start over whenever the signed-in user changes. */}
-      <CheckoutForm
-        key={user ? `user-${user.id}` : "guest"}
-        onPlaced={handlePlaced}
-        user={user}
-      />
-      <CheckoutSummary />
+  return ( 
+    <div className="space-y-6">
+      <CartCheckNotice />
+      <div className="grid gap-8 lg:grid-cols-[1fr_22rem]">
+        {/* The key makes the form start over whenever the signed-in user changes. */}
+        <CheckoutForm
+          key={user ? `user-${user.id}` : "guest"}
+          onPlaced={handlePlaced}
+          user={user}
+        />
+        <CheckoutSummary />
+      </div>
     </div>
   );
 }

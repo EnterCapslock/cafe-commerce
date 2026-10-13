@@ -34,4 +34,21 @@ public class ProductService(AppDbContext db) : IProductService
 
         return product?.ToDetailDto();
     }
+    
+    public async Task<IReadOnlyList<VariantCheckDto>> CheckVariantsAsync(
+        IReadOnlyCollection<int> variantIds, CancellationToken ct)
+    {
+        var wanted = variantIds.Distinct().ToList();
+        var found = await db.ProductVariants
+            .AsNoTracking()
+            .Include(v => v.Product)
+            .Where(v => wanted.Contains(v.Id))
+            .ToDictionaryAsync(v => v.Id, ct);
+
+        return wanted
+            .Select(id => found.TryGetValue(id, out var v)
+                ? new VariantCheckDto(id, v.IsAvailable && v.Product.IsActive, v.Price)
+                : new VariantCheckDto(id, false, null))   // deleted: no longer exists
+            .ToList();
+    }
 }
