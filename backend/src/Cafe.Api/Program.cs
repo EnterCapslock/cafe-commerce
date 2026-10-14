@@ -19,6 +19,10 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Hosts like Render say which port to use. Locally nothing sets PORT, so the launch settings apply.
+if (Environment.GetEnvironmentVariable("PORT") is { Length: > 0 } port)
+    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
 // --- Data ---
 builder.Services.AddDbContext<AppDbContext>((sp, options) =>
     options.UseNpgsql(sp.GetRequiredService<IConfiguration>().GetConnectionString("Default")));
@@ -36,7 +40,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>()
 // --- Authentication & authorization ---
 builder.Services.AddJwtAuth(builder.Configuration);
 
-// --- Rate limiting ---
+// --- Rate limiting (per visitor: see ClientIp) ---
 var authPerMinute = builder.Configuration.GetValue("RateLimits:AuthPerMinute", 10);
 var ordersPerMinute = builder.Configuration.GetValue("RateLimits:OrdersPerMinute", 20);
 
@@ -46,12 +50,12 @@ builder.Services.AddRateLimiter(options =>
 
     options.AddPolicy("auth", httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
-            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            ClientIp.Resolve(httpContext),
             _ => new FixedWindowRateLimiterOptions { PermitLimit = authPerMinute, Window = TimeSpan.FromMinutes(1) }));
 
     options.AddPolicy("orders", httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
-            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            ClientIp.Resolve(httpContext),
             _ => new FixedWindowRateLimiterOptions { PermitLimit = ordersPerMinute, Window = TimeSpan.FromMinutes(1) }));
 });
 
@@ -74,6 +78,7 @@ builder.Services.AddHealthChecks().AddDbContextCheck<AppDbContext>("database");
 builder.Services.Configure<OrderOptions>(builder.Configuration.GetSection(OrderOptions.SectionName));
 builder.Services.Configure<PayMongoOptions>(builder.Configuration.GetSection(PayMongoOptions.SectionName));
 builder.Services.Configure<CloudinaryOptions>(builder.Configuration.GetSection(CloudinaryOptions.SectionName));
+builder.Services.Configure<ProxyOptions>(builder.Configuration.GetSection(ProxyOptions.SectionName));
 builder.Services.AddSingleton(TimeProvider.System);
 
 // --- Payments ---
@@ -103,7 +108,12 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.MapScalarApiReference();
+}
 
+// Development always prepares the database. Elsewhere it's opt-in (Database:MigrateOnStartup=true), which
+// suits one small instance. A larger setup would run migrations as a separate step of the deployment.
+if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
+{
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     var seederLogger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Seeder");
@@ -118,7 +128,8 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false });   // is the process up?
+
+app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false });   // is the process up? (the host's probe)
 app.MapHealthChecks("/health", new HealthCheckOptions { ResponseWriter = HealthResponseWriter.WriteAsync }); // can it reach the database?
 
 app.Run();
