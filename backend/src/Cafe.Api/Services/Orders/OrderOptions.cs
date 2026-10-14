@@ -1,4 +1,4 @@
-namespace Cafe.Api.Services;
+namespace Cafe.Api.Services.Orders;
 
 public sealed class OrderOptions
 {

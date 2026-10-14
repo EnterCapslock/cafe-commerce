@@ -6,7 +6,7 @@ using System.Text.Json;
 using Cafe.Api.Models.Entities;
 using Cafe.Api.Services.Interfaces;
 using Microsoft.Extensions.Options;
-namespace Cafe.Api.Services;
+namespace Cafe.Api.Infrastructure.Payments;
 
 public class PayMongoGateway(
     HttpClient http,

@@ -1,5 +1,5 @@
 using Cafe.Api.Models.Enums;
-namespace Cafe.Api.Services;
+namespace Cafe.Api.Services.Orders;
 
 /// <summary>The only moves an order can make. Completed and Cancelled are final.</summary>
 internal static class OrderStatusRules

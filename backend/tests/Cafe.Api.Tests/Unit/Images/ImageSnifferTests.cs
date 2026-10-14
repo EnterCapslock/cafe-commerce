@@ -1,5 +1,5 @@
 using System.Text;
-using Cafe.Api.Services;
+using Cafe.Api.Infrastructure.Images;
 using Xunit;
 
 namespace Cafe.Api.Tests.Unit.Images;

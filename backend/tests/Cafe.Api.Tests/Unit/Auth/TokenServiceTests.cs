@@ -1,7 +1,7 @@
 using System.Text;
 using Cafe.Api.Models.Entities;
 using Cafe.Api.Models.Enums;
-using Cafe.Api.Services;
+using Cafe.Api.Services.Auth;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;

@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
-using Cafe.Api.Services;
+using Cafe.Api.Infrastructure.Payments;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;

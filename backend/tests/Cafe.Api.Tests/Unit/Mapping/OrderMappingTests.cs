@@ -1,6 +1,6 @@
 using Cafe.Api.Models.Entities;
 using Cafe.Api.Models.Enums;
-using Cafe.Api.Services;
+using Cafe.Api.Services.Orders;
 using Xunit;
 
 namespace Cafe.Api.Tests.Unit.Mapping;

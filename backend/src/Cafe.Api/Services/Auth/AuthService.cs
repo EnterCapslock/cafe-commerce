@@ -5,7 +5,7 @@ using Cafe.Api.Models.Enums;
 using Cafe.Api.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-namespace Cafe.Api.Services;
+namespace Cafe.Api.Services.Auth;
 
 public class AuthService(AppDbContext db, ITokenService tokens, ILogger<AuthService> logger) : IAuthService
 {

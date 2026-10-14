@@ -1,6 +1,6 @@
 using System.Text;
 using Cafe.Api.Models.Enums;
-using Cafe.Api.Services;
+using Cafe.Api.Services.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 namespace Cafe.Api.Extensions;

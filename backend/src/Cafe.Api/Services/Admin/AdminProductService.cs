@@ -2,9 +2,10 @@ using Cafe.Api.Data;
 using Cafe.Api.Models.Dtos;
 using Cafe.Api.Models.Entities;
 using Cafe.Api.Services.Interfaces;
+using Cafe.Api.Infrastructure.Images;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-namespace Cafe.Api.Services;
+namespace Cafe.Api.Services.Admin;
 
 public class AdminProductService(
     AppDbContext db,

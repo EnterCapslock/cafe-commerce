@@ -2,8 +2,10 @@ using Cafe.Api.Data;
 using Cafe.Api.Models.Dtos;
 using Cafe.Api.Models.Enums;
 using Cafe.Api.Services.Interfaces;
+using Cafe.Api.Services.Orders;
 using Microsoft.EntityFrameworkCore;
-namespace Cafe.Api.Services;
+namespace Cafe.Api.Services.Admin;
+
 
 public class AdminOrderService(AppDbContext db, TimeProvider time, ILogger<AdminOrderService> logger)
     : IAdminOrderService

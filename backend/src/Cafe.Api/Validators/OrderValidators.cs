@@ -1,5 +1,5 @@
 using Cafe.Api.Models.Dtos;
-using Cafe.Api.Services;
+using Cafe.Api.Services.Orders;
 using FluentValidation;
 using Microsoft.Extensions.Options;
 namespace Cafe.Api.Validators;

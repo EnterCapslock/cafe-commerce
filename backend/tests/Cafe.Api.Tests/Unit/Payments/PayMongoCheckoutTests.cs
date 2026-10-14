@@ -2,7 +2,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using Cafe.Api.Models.Entities;
-using Cafe.Api.Services;
+using Cafe.Api.Infrastructure.Payments;
 using Cafe.Api.Services.Interfaces;
 using Cafe.Api.Tests.TestSupport;
 using Microsoft.Extensions.Configuration;

@@ -1,5 +1,5 @@
 using Cafe.Api.Models.Enums;
-using Cafe.Api.Services;
+using Cafe.Api.Services.Orders;
 using Xunit;
 using static Cafe.Api.Models.Enums.OrderStatus;
 

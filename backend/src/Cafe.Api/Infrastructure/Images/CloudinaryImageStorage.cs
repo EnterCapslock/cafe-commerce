@@ -2,7 +2,7 @@ using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Cafe.Api.Services.Interfaces;
 using Microsoft.Extensions.Options;
-namespace Cafe.Api.Services;
+namespace Cafe.Api.Infrastructure.Images;
 
 public sealed class CloudinaryImageStorage : IImageStorage
 {

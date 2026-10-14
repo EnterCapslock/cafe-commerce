@@ -1,6 +1,7 @@
 using Cafe.Api.Models.Entities;
 using Cafe.Api.Models.Enums;
-using Cafe.Api.Services;
+using Cafe.Api.Services.Admin;
+using Cafe.Api.Services.Catalog;
 using Xunit;
 
 namespace Cafe.Api.Tests.Unit.Mapping;

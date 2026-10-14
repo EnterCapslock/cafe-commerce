@@ -1,4 +1,4 @@
-namespace Cafe.Api.Services;
+namespace Cafe.Api.Infrastructure.Images;
 
 public sealed class CloudinaryOptions
 {

@@ -4,7 +4,7 @@ using Cafe.Api.Models.Enums;
 using Cafe.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-namespace Cafe.Api.Controllers;
+namespace Cafe.Api.Controllers.Admin;
 
 [ApiController]
 [Route("api/admin/orders")]

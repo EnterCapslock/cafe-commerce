@@ -3,7 +3,7 @@ using Cafe.Api.Models.Dtos;
 using Cafe.Api.Models.Enums;
 using Cafe.Api.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
-namespace Cafe.Api.Services;
+namespace Cafe.Api.Services.Catalog;
 
 public class ProductService(AppDbContext db) : IProductService
 {

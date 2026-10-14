@@ -1,6 +1,6 @@
 using Cafe.Api.Models.Dtos;
 using Cafe.Api.Models.Enums;
-using Cafe.Api.Services;
+using Cafe.Api.Services.Orders;
 using Cafe.Api.Validators;
 using FluentValidation.TestHelper;
 using Microsoft.Extensions.Options;

@@ -1,6 +1,6 @@
 using Cafe.Api.Models.Dtos;
 using Cafe.Api.Models.Entities;
-namespace Cafe.Api.Services;
+namespace Cafe.Api.Services.Admin;
 
 internal static class AdminMapping
 {

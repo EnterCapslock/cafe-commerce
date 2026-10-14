@@ -1,4 +1,4 @@
-namespace Cafe.Api.Services;
+namespace Cafe.Api.Infrastructure.Images;
 
 /// <summary>Identifies an image by its first bytes, so a renamed text file can't pass as a photo.</summary>
 internal static class ImageSniffer

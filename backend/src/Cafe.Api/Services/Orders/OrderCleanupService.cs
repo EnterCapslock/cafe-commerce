@@ -2,7 +2,7 @@ using Cafe.Api.Data;
 using Cafe.Api.Models.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-namespace Cafe.Api.Services;
+namespace Cafe.Api.Services.Orders;
 
 public sealed class OrderCleanupService(
     IServiceScopeFactory scopes,

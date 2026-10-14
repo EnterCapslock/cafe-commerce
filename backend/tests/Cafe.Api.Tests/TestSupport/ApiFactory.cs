@@ -1,7 +1,8 @@
 using Cafe.Api.Data;
 using Cafe.Api.Models.Dtos;
-using Cafe.Api.Services;
 using Cafe.Api.Services.Interfaces;
+using Cafe.Api.Infrastructure.Payments;
+using Cafe.Api.Services.Orders;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;

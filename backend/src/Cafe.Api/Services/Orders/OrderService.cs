@@ -6,7 +6,7 @@ using Cafe.Api.Models.Enums;
 using Cafe.Api.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-namespace Cafe.Api.Services;
+namespace Cafe.Api.Services.Orders;
 
 public class OrderService(
     AppDbContext db,

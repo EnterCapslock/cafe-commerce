@@ -1,6 +1,6 @@
 using Cafe.Api.Models.Entities;
 using Cafe.Api.Models.Enums;
-namespace Cafe.Api.Services;
+namespace Cafe.Api.Services.Orders;
 
 public static class OrderQueries
 {

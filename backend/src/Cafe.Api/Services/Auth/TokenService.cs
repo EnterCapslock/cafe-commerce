@@ -5,7 +5,7 @@ using Cafe.Api.Services.Interfaces;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-namespace Cafe.Api.Services;
+namespace Cafe.Api.Services.Auth;
 
 public class TokenService(IOptions<JwtOptions> options) : ITokenService
 {
