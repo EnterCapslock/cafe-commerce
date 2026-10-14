@@ -6,3 +6,8 @@ node_modules/
 .next/
 .env*.local
 appsettings.Development.json
+TestResults/
+*.trx
+.idea/
+.DS_Store
+Thumbs.db
