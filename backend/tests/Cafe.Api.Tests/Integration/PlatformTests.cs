@@ -43,17 +43,19 @@ public class PlatformTests(ApiFactory api) : IClassFixture<ApiFactory>
     [Fact]
     public async Task Errors_come_back_as_problem_details()
     {
-        var badCategory = await Client.Call(HttpMethod.Get, "/api/products?category=Pizza");
-        await badCategory.ExpectAsync(HttpStatusCode.BadRequest);
-        AssertProblemShape(await badCategory.Content.ReadAsStringAsync(), 400);
+        await ExpectProblemAsync(await Client.Call(HttpMethod.Get, "/api/products?category=Pizza"), HttpStatusCode.BadRequest);
+        await ExpectProblemAsync(await Client.Call(HttpMethod.Get, "/api/products/999999"), HttpStatusCode.NotFound);
+        await ExpectProblemAsync(await Client.Call(HttpMethod.Get, "/api/nothing-here"), HttpStatusCode.NotFound);
+    }
 
-        var missing = await Client.Call(HttpMethod.Get, "/api/products/999999");
-        await missing.ExpectAsync(HttpStatusCode.NotFound);
-        AssertProblemShape(await missing.Content.ReadAsStringAsync(), 404);
+    private static async Task ExpectProblemAsync(HttpResponseMessage response, HttpStatusCode status)
+    {
+        await response.ExpectAsync(status);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
 
-        var unknownRoute = await Client.Call(HttpMethod.Get, "/api/nothing-here");
-        await unknownRoute.ExpectAsync(HttpStatusCode.NotFound);
-        AssertProblemShape(await unknownRoute.Content.ReadAsStringAsync(), 404);
+        using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        Assert.Equal((int)status, document.RootElement.GetProperty("status").GetInt32());
+        Assert.True(document.RootElement.TryGetProperty("title", out _));
     }
 
     private static void AssertProblemShape(string body, int status)

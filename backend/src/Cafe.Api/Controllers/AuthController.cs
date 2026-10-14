@@ -8,7 +8,6 @@ namespace Cafe.Api.Controllers;
 
 [ApiController]
 [Route("api/auth")]
-[Produces("application/json")]
 public class AuthController(IAuthService auth) : ControllerBase
 {
     /// <summary>Creates a customer account and returns a JWT.</summary>

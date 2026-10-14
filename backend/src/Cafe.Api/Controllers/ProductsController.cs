@@ -6,7 +6,6 @@ namespace Cafe.Api.Controllers;
 
 [ApiController]
 [Route("api/products")]
-[Produces("application/json")]
 public class ProductsController(IProductService products) : ControllerBase
 {
     /// <summary>Lists active menu items, optionally filtered by category.</summary>

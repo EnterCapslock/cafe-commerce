@@ -8,7 +8,6 @@ namespace Cafe.Api.Controllers;
 
 [ApiController]
 [Route("api/orders")]
-[Produces("application/json")]
 public class OrdersController(IOrderService orders) : ControllerBase
 {
     /// <summary>Places an order as a guest, or as the logged-in user if a token is supplied.</summary>

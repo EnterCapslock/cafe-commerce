@@ -8,7 +8,6 @@ namespace Cafe.Api.Controllers;
 
 [ApiController]
 [Route("api/admin/orders")]
-[Produces("application/json")]
 [Authorize(Policy = Policies.AdminOnly)]
 public class AdminOrdersController(IAdminOrderService orders) : ControllerBase
 {
