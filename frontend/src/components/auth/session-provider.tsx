@@ -5,7 +5,7 @@ import {
   createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode,
 } from "react";
 import { toast } from "sonner";
-import { authApi } from "@/lib/auth-api";
+import { authApi } from "@/lib/api/auth";
 import type { UserDto } from "@/types/api";
 
 type SessionState =

@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useHydrated } from "@/lib/use-hydrated";
-import { useShopper } from "@/lib/use-shopper";
+import { useHydrated } from "@/lib/hooks/use-hydrated";
+import { useShopper } from "@/lib/hooks/use-shopper";
 import { selectCount, useCartStore } from "@/stores/cart-store";
 
 export function CartButton() {

@@ -1,4 +1,4 @@
-import { ApiError } from "@/lib/api";
+import { ApiError } from "@/lib/api/client";
 
 export function describeApiError(error: unknown): string[] {
   if (error instanceof ApiError) {

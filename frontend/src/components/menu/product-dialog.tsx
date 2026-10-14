@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-import { QuantityStepper } from "@/components/quantity-stepper";
-import { api, ApiError } from "@/lib/api";
+import { QuantityStepper } from "@/components/shared/quantity-stepper";
+import { api, ApiError } from "@/lib/api/client";
 import { formatPeso } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/stores/cart-store";

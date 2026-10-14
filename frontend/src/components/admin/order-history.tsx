@@ -5,7 +5,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { api } from "@/lib/api";
+import { api } from "@/lib/api/client";
 import { formatPeso } from "@/lib/format";
 import { formatPhtShort } from "@/lib/time";
 import type { OrderDto } from "@/types/api";

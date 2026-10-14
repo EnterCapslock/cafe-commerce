@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { formatPeso } from "@/lib/format";
-import { useCartCheck } from "@/lib/use-cart-check";
+import { useCartCheck } from "@/lib/hooks/use-cart-check";
 import { useCartStore } from "@/stores/cart-store";
 
 /** Tells the customer when something in their cart was removed from the menu or changed price. */

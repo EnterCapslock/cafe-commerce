@@ -5,8 +5,8 @@ import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { formatPeso } from "@/lib/format";
-import { useMyOrders } from "@/lib/use-my-orders";
-import { useShopper } from "@/lib/use-shopper";
+import { useMyOrders } from "@/lib/hooks/use-my-orders";
+import { useShopper } from "@/lib/hooks/use-shopper";
 
 /** For signed-in customers only: reminds them of an online order that's still waiting for payment. */
 export function UnpaidOrderNotice() {

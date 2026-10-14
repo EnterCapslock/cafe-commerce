@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { checkCart, type VariantCheck } from "@/lib/cart-check";
+import { checkCart, type VariantCheck } from "@/lib/api/cart-check";
 
 /** What the server currently says about each cart line, or null while checking (or if it can't be reached). */
 export function useCartCheck(variantIds: number[]): ReadonlyMap<number, VariantCheck> | null {

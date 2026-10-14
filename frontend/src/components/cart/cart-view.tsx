@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { ShoppingBag, Trash2 } from "lucide-react";
-import { QuantityStepper } from "@/components/quantity-stepper";
+import { QuantityStepper } from "@/components/shared/quantity-stepper";
 import { Button } from "@/components/ui/button";
 import { formatPeso } from "@/lib/format";
-import { useHydrated } from "@/lib/use-hydrated";
+import { useHydrated } from "@/lib/hooks/use-hydrated";
 import { selectSubtotal, useCartStore } from "@/stores/cart-store";
 import { AdminCannotOrder } from "@/components/auth/admin-cannot-order";
 import { CartCheckNotice } from "@/components/cart/cart-check-notice";
-import { useShopper } from "@/lib/use-shopper";
+import { useShopper } from "@/lib/hooks/use-shopper";
 
 export function CartView() {
   const { isAdmin } = useShopper();

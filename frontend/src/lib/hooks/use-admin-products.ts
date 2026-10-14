@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { api, ApiError } from "@/lib/api";
+import { api, ApiError } from "@/lib/api/client";
 import type { AdminProduct } from "@/types/api";
 
 type State =

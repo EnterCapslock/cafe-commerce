@@ -8,13 +8,13 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { PasswordInput } from "@/components/auth/password-input";
 import { useSession } from "@/components/auth/session-provider";
-import { FieldError } from "@/components/field-error";
+import { FieldError } from "@/components/shared/field-error";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { describeApiError } from "@/lib/api-errors";
-import { authApi } from "@/lib/auth-api";
+import { describeApiError } from "@/lib/api/errors";
+import { authApi } from "@/lib/api/auth";
 import { loginSchema, type LoginValues } from "@/lib/schemas/auth";
 
 export function LoginForm({ next }: { next: string }) {

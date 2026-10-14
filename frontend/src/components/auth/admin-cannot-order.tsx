@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSession } from "@/components/auth/session-provider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { useShopper } from "@/lib/use-shopper";
+import { useShopper } from "@/lib/hooks/use-shopper";
 
 /** Full-page message for /cart and /checkout. */
 export function AdminCannotOrder() {

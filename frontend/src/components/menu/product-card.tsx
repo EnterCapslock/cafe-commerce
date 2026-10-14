@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { CategoryIcon } from "@/components/menu/category-icon";
 import { ProductDialog } from "@/components/menu/product-dialog";
-import { ProductImage } from "@/components/product-image"
+import { ProductImage } from "@/components/shared/product-image"
 import { formatPeso } from "@/lib/format";
 import type { ProductSummary } from "@/types/api";
-import { useShopper } from "@/lib/use-shopper";
+import { useShopper } from "@/lib/hooks/use-shopper";
 
 export function ProductCard({ product }: { product: ProductSummary }) {
   const [open, setOpen] = useState(false);

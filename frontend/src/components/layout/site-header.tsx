@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Coffee } from "lucide-react";
 import { UserMenu } from "@/components/auth/user-menu";
-import { CartButton } from "@/components/cart-button";
+import { CartButton } from "@/components/layout/cart-button";
 import { SITE_NAME } from "@/lib/config";
 
 export function SiteHeader() {

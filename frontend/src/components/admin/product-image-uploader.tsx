@@ -2,10 +2,10 @@
 
 import { useRef, useState, type ChangeEvent } from "react";
 import { toast } from "sonner";
-import { ProductImage } from "@/components/product-image";
+import { ProductImage } from "@/components/shared/product-image";
 import { Button } from "@/components/ui/button";
-import { api } from "@/lib/api";
-import { describeApiError } from "@/lib/api-errors";
+import { api } from "@/lib/api/client";
+import { describeApiError } from "@/lib/api/errors";
 import { prepareImage } from "@/lib/image-prep";
 
 export function ProductImageUploader({ productId, initialUrl }: { productId: number; initialUrl: string | null }) {

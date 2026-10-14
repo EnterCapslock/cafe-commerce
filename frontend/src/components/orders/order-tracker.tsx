@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { api, ApiError } from "@/lib/api";
+import { api, ApiError } from "@/lib/api/client";
 import { formatPeso } from "@/lib/format";
 import { formatPht } from "@/lib/time";
 import { cn } from "@/lib/utils";

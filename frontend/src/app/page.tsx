@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { CategoryFilter } from "@/components/menu/category-filter";
 import { ProductCard } from "@/components/menu/product-card";
-import { api } from "@/lib/api";
+import { api } from "@/lib/api/client";
 import type { ProductCategory } from "@/types/api";
 import { UnpaidOrderNotice } from "@/components/orders/unpaid-order-notice";
 import { AdminOrderingNotice } from "@/components/auth/admin-cannot-order";

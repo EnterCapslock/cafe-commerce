@@ -1,4 +1,4 @@
-import { request } from "@/lib/api";
+import { request } from "@/lib/api/client";
 import type { UserDto } from "@/types/api";
 
 // (calls this app's own route handlers, never the .NET API directly)

@@ -11,8 +11,8 @@ import { CheckoutForm } from "@/components/checkout/checkout-form";
 import { CheckoutSummary } from "@/components/checkout/checkout-summary";
 import { Button } from "@/components/ui/button";
 import { rememberLastOrder, useLastOrderId } from "@/lib/last-order";
-import { useHydrated } from "@/lib/use-hydrated";
-import { useShopper } from "@/lib/use-shopper";
+import { useHydrated } from "@/lib/hooks/use-hydrated";
+import { useShopper } from "@/lib/hooks/use-shopper";
 import { useCartStore } from "@/stores/cart-store";
 import type { OrderDto } from "@/types/api";
 

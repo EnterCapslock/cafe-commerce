@@ -7,9 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatPeso } from "@/lib/format";
 import { formatPht } from "@/lib/time";
-import { useMyOrders } from "@/lib/use-my-orders";
+import { useMyOrders } from "@/lib/hooks/use-my-orders";
 import type { OrderDto, OrderStatus } from "@/types/api";
-import { useShopper } from "@/lib/use-shopper";
+import { useShopper } from "@/lib/hooks/use-shopper";
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
   Pending: "Order received",

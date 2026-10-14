@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { api, ApiError } from "@/lib/api";
+import { api, ApiError } from "@/lib/api/client";
 import { toTimestamp } from "@/lib/time";
 import type { OrderDto, OrderStatus } from "@/types/api";
 

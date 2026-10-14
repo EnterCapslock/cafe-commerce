@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { ProductForm } from "@/components/admin/product-form";
 import { ProductImageUploader } from "@/components/admin/product-image-uploader";
 import { Button } from "@/components/ui/button";
-import { api, ApiError } from "@/lib/api";
+import { api, ApiError } from "@/lib/api/client";
 import type { AdminProduct } from "@/types/api";
 
 type State =

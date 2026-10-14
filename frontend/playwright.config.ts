@@ -34,7 +34,7 @@ export default defineConfig({
       command: "dotnet run --no-launch-profile --configuration Release",
       cwd: "../backend/src/Cafe.Api",
       url: `${API_URL}/health`,
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: process.env.E2E_REUSE === "1",
       timeout: 180_000,
       // stdout: "pipe", // uncomment to see the API's logs while debugging
       env: {
@@ -59,7 +59,7 @@ export default defineConfig({
     {
       command: `npm run build && npx next start -p ${WEB_PORT}`,
       url: WEB_URL,
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: process.env.E2E_REUSE === "1",
       timeout: 300_000,
       env: {
         NEXT_PUBLIC_API_URL: API_URL, // baked into the build, and used by server-side calls

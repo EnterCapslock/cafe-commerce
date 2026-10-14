@@ -9,8 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SITE_NAME } from "@/lib/config";
-import { useNow } from "@/lib/use-now";
-import { useOrderBoard } from "@/lib/use-order-board";
+import { useNow } from "@/lib/hooks/use-now";
+import { useOrderBoard } from "@/lib/hooks/use-order-board";
 import type { OrderDto, OrderStatus } from "@/types/api";
 
 const COLUMNS: { status: OrderStatus; title: string; empty: string }[] = [
