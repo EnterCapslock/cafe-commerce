@@ -1,0 +1,167 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+# A newer push to the same branch cancels the run that's still going
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  api:
+    name: API (build and tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v5
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('backend/**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - run: dotnet restore
+
+      - run: dotnet build --no-restore --configuration Release
+
+      # The integration tests start a real Postgres container (Testcontainers), which needs Docker.
+      - name: Test (unit and integration)
+        run: >
+          dotnet test --no-build --configuration Release
+          --logger "trx;LogFileName=results.trx"
+          --results-directory ../TestResults
+
+      - name: Upload test results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: api-test-results
+          path: TestResults/*.trx
+          if-no-files-found: ignore
+          retention-days: 7
+
+  frontend:
+    name: Web (lint and types)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      # Generates the route types (LayoutProps, PageProps) that a fresh checkout doesn't have yet
+      - run: npx next typegen
+
+      - run: npx tsc --noEmit
+
+  e2e:
+    name: End-to-end (Playwright)
+    needs: [api, frontend]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      # Read by playwright.config.ts. The API creates and migrates this database on startup.
+      E2E_DB_CONNECTION: Host=localhost;Port=5432;Database=cafe_e2e;Username=postgres;Password=postgres
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v5
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('backend/**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      # Build first, so a compile error shows up here and not as a server timeout inside Playwright
+      - name: Build the API
+        run: dotnet build backend/src/Cafe.Api --configuration Release
+
+      - name: Install web dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Cache the Next.js build cache
+        uses: actions/cache@v5
+        with:
+          path: frontend/.next/cache
+          key: nextjs-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}-${{ hashFiles('frontend/src/**') }}
+          restore-keys: nextjs-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}-
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+
+      - name: Install the Playwright browser
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
+      # playwright.config.ts starts the API and the web app, then runs the tests
+      - name: Run the end-to-end tests
+        working-directory: frontend
+        run: npm run e2e
+
+      - name: Upload the Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: |
+            frontend/playwright-report
+            frontend/test-results
+          if-no-files-found: ignore
+          retention-days: 7
