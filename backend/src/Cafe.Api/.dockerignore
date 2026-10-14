@@ -1,4 +1,9 @@
-bin/
-obj/
-*.user
-.git/
+**/bin/
+**/obj/
+**/*.user
+**/.vs/
+.git
+.gitignore
+appsettings.Development.json
+Dockerfile
+.dockerignore

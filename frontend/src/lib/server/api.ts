@@ -11,6 +11,8 @@ interface CallOptions {
   clientIp?: string | null;
 }
 
+const PROXY_SECRET = process.env.PROXY_SHARED_SECRET ?? "";
+
 /** Calls the .NET API from the Next.js server. Returns null if it can't be reached. */
 export async function callApi(path: string, opts: CallOptions = {}): Promise<Response | null> {
   try {
@@ -20,7 +22,10 @@ export async function callApi(path: string, opts: CallOptions = {}): Promise<Res
         Accept: "application/json",
         ...(opts.body !== undefined ? { "Content-Type": "application/json" } : {}),
         ...(opts.token ? { Authorization: `Bearer ${opts.token}` } : {}),
-        ...(opts.clientIp ? { "X-Forwarded-For": opts.clientIp } : {}),
+        // Lets the API rate-limit each visitor separately, instead of treating every request as coming from this server
+        ...(opts.clientIp && PROXY_SECRET
+          ? { "X-Cafe-Proxy-Secret": PROXY_SECRET, "X-Cafe-Client-Ip": opts.clientIp }
+          : {}),
       },
       body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
       cache: "no-store",
