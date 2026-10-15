@@ -218,6 +218,7 @@ export function CheckoutForm({
               aria-describedby={errors.customerEmail ? "customerEmail-error" : undefined}
               {...register("customerEmail")}
             />
+            <p className="text-sm text-muted-foreground">We&apos;ll email your order confirmation and tell you when it&apos;s ready.</p>
             <FieldError id="customerEmail-error" message={errors.customerEmail?.message} />
           </div>
 

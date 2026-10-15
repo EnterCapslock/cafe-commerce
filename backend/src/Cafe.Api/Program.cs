@@ -10,6 +10,8 @@ using Cafe.Api.Services.Auth;
 using Cafe.Api.Services.Catalog;
 using Cafe.Api.Services.Orders;
 using Cafe.Api.Services.Interfaces;
+using Cafe.Api.Infrastructure.Mail;
+using Cafe.Api.Services.Notifications;
 using Cafe.Api.Validators;
 using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -94,6 +96,21 @@ builder.Services.AddHttpClient<IPaymentGateway, PayMongoGateway>((sp, client) =>
     client.BaseAddress = new Uri(pm.BaseUrl);
     client.Timeout = TimeSpan.FromSeconds(15);
 });
+
+// --- Email ---
+builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection(EmailOptions.SectionName));
+builder.Services.AddHttpClient<BrevoEmailSender>(client =>
+{
+    client.BaseAddress = new Uri("https://api.brevo.com/");
+    client.Timeout = TimeSpan.FromSeconds(15);
+});
+builder.Services.AddScoped<LogEmailSender>();
+builder.Services.AddScoped<IEmailSender>(sp =>
+    sp.GetRequiredService<IOptions<EmailOptions>>().Value.IsConfigured
+        ? (IEmailSender)sp.GetRequiredService<BrevoEmailSender>()
+        : sp.GetRequiredService<LogEmailSender>());
+builder.Services.AddSingleton<OrderEmailComposer>();
+builder.Services.AddHostedService<EmailOutboxWorker>();
 
 // --- Application services ---
 builder.Services.AddScoped<IProductService, ProductService>();

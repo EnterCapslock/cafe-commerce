@@ -2,13 +2,16 @@ using Cafe.Api.Data;
 using Cafe.Api.Models.Dtos;
 using Cafe.Api.Models.Enums;
 using Cafe.Api.Services.Interfaces;
+using Cafe.Api.Services.Notifications;
 using Cafe.Api.Services.Orders;
 using Microsoft.EntityFrameworkCore;
 namespace Cafe.Api.Services.Admin;
 
-
-public class AdminOrderService(AppDbContext db, TimeProvider time, ILogger<AdminOrderService> logger)
-    : IAdminOrderService
+public class AdminOrderService(
+    AppDbContext db,
+    TimeProvider time,
+    OrderEmailComposer emails,
+    ILogger<AdminOrderService> logger) : IAdminOrderService
 {
     public async Task<IReadOnlyList<OrderDto>> ListAsync(
         OrderStatus? status, string? search, int limit, CancellationToken ct)
@@ -66,6 +69,8 @@ public class AdminOrderService(AppDbContext db, TimeProvider time, ILogger<Admin
         var now = time.GetUtcNow().UtcDateTime;
         var collectPayment = target == OrderStatus.Completed && order.PaymentMethod == PaymentMethod.PayAtCounter;
 
+        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+
         // Check 3: the update only applies if the status is still what we just read. If another
         // barista changed the order in the meantime, zero rows match and we report it instead of
         // overwriting their change.
@@ -84,15 +89,25 @@ public class AdminOrderService(AppDbContext db, TimeProvider time, ILogger<Admin
         if (rows == 0)
         {
             return ServiceResult<OrderDto>.Conflict(
-                "This order was just updated by someone else. Refresh and try again.");
+                "This order was just updated by someone else. Refresh and try again.");   // the transaction rolls back
         }
+
+        var updated = await db.Orders.AsNoTracking().Include(o => o.Items).FirstAsync(o => o.Id == id, ct);
+
+        // "Ready for pickup" is the email customers actually wait for. It's queued in the same
+        // transaction as the status change.
+        if (target == OrderStatus.ReadyForPickup)
+        {
+            db.EnqueueEmail(emails.Compose(updated, EmailKind.ReadyForPickup), EmailKind.ReadyForPickup, id, now);
+            await db.SaveChangesAsync(ct);
+        }
+
+        await transaction.CommitAsync(ct);
 
         if (target == OrderStatus.Cancelled && order.PaymentStatus == PaymentStatus.Paid)
             logger.LogWarning("Paid order {OrderId} was cancelled. A refund is required.", id);
 
         logger.LogInformation("Order {OrderId}: {From} -> {To}", id, order.Status, target);
-
-        var updated = await db.Orders.AsNoTracking().Include(o => o.Items).FirstAsync(o => o.Id == id, ct);
         return ServiceResult<OrderDto>.Ok(updated.ToDto());
     }
 
