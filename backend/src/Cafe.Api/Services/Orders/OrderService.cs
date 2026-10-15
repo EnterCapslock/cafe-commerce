@@ -4,6 +4,7 @@ using Cafe.Api.Models.Dtos;
 using Cafe.Api.Models.Entities;
 using Cafe.Api.Models.Enums;
 using Cafe.Api.Services.Interfaces;
+using Cafe.Api.Services.Notifications;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 namespace Cafe.Api.Services.Orders;
@@ -13,6 +14,7 @@ public class OrderService(
     TimeProvider time,
     IPaymentGateway gateway,
     IOptions<OrderOptions> options,
+    OrderEmailComposer emails,
     ILogger<OrderService> logger) : IOrderService
 {
     private readonly OrderOptions _opts = options.Value;
@@ -103,6 +105,11 @@ public class OrderService(
             }
         }
 
+        // Counter orders are confirmed right away. Online orders are confirmed when the payment arrives.
+        // The email is saved together with the order, so you never get one without the other.
+        if (order.PaymentMethod == PaymentMethod.PayAtCounter)
+            db.EnqueueEmail(emails.Compose(order, EmailKind.OrderReceived), EmailKind.OrderReceived, order.Id, now);
+
         // 8. One SaveChanges = one transaction: the order and all its items, or nothing.
         db.Orders.Add(order);
         await db.SaveChangesAsync(ct);
@@ -148,12 +155,14 @@ public class OrderService(
     {
         var now = time.GetUtcNow().UtcDateTime;
 
+        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+
         // A single conditional UPDATE: atomic, and a duplicate delivery matches zero rows.
         var rows = await db.Orders
             .Where(o => o.Id == orderId
-                     && o.PaymentMethod == PaymentMethod.Online
-                     && o.PaymentReference == checkoutSessionId
-                     && o.PaymentStatus != PaymentStatus.Paid)
+                    && o.PaymentMethod == PaymentMethod.Online
+                    && o.PaymentReference == checkoutSessionId
+                    && o.PaymentStatus != PaymentStatus.Paid)
             .ExecuteUpdateAsync(s => s
                 .SetProperty(o => o.PaymentStatus, PaymentStatus.Paid)
                 .SetProperty(o => o.PaidAt, (DateTime?)now)
@@ -163,12 +172,23 @@ public class OrderService(
         {
             logger.LogInformation(
                 "Ignored payment event for order {OrderId}: unknown, mismatched, or already paid", orderId);
-            return false;
+            return false;   // the transaction is rolled back; nothing changed
         }
 
-        if (await db.Orders.AnyAsync(o => o.Id == orderId && o.Status == OrderStatus.Cancelled, ct))
-            logger.LogWarning("Order {OrderId} was paid after it was cancelled. A refund is required.", orderId);
+        var order = await db.Orders.AsNoTracking().Include(o => o.Items).FirstAsync(o => o.Id == orderId, ct);
 
+        if (order.Status == OrderStatus.Cancelled)
+        {
+            logger.LogWarning("Order {OrderId} was paid after it was cancelled. A refund is required.", orderId);
+        }
+        else
+        {
+            // The confirmation is queued together with the payment itself
+            db.EnqueueEmail(emails.Compose(order, EmailKind.OrderReceived), EmailKind.OrderReceived, order.Id, now);
+            await db.SaveChangesAsync(ct);
+        }
+
+        await transaction.CommitAsync(ct);
         logger.LogInformation("Order {OrderId} marked as paid", orderId);
         return true;
     }

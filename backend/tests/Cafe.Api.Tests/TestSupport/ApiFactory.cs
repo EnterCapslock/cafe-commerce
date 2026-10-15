@@ -3,6 +3,8 @@ using Cafe.Api.Models.Dtos;
 using Cafe.Api.Services.Interfaces;
 using Cafe.Api.Infrastructure.Payments;
 using Cafe.Api.Services.Orders;
+using Cafe.Api.Models.Entities;
+using Cafe.Api.Services.Notifications;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -13,6 +15,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Time.Testing;
+using Microsoft.EntityFrameworkCore;
 
 namespace Cafe.Api.Tests.TestSupport;
 
@@ -41,6 +44,8 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
     public FakePayMongoHandler PayMongo { get; } = new();
     public FakeImageStorage Images { get; } = new();
 
+    public FakeEmailSender Emails { get; } = new();
+
     public HttpClient Client => _client ??= CreateClient();
 
     public Task<string> AdminTokenAsync() => _adminToken.Value;
@@ -61,6 +66,9 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
             services.RemoveAll<IImageStorage>();
             services.AddSingleton<IImageStorage>(Images);
 
+            services.RemoveAll<IEmailSender>();
+            services.AddSingleton<IEmailSender>(Emails);
+
             // The real PayMongoGateway, talking to a fake network
             services.AddHttpClient<IPaymentGateway, PayMongoGateway>()
                 .ConfigurePrimaryHttpMessageHandler(() => PayMongo);
@@ -70,6 +78,12 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
                 .Where(d => d.ServiceType == typeof(IHostedService) && d.ImplementationType == typeof(OrderCleanupService))
                 .ToList();
             foreach (var descriptor in cleanup) services.Remove(descriptor);
+
+            var backgroundJobs = services
+                .Where(d => d.ServiceType == typeof(IHostedService)
+                        && (d.ImplementationType == typeof(OrderCleanupService) || d.ImplementationType == typeof(EmailOutboxWorker)))
+                .ToList();
+            foreach (var descriptor in backgroundJobs) services.Remove(descriptor);
         });
     }
 
@@ -97,4 +111,15 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
 
         return service.RunOnceAsync(options, CancellationToken.None);
     }
+
+    /// <summary>Runs the real email worker once, using the fake clock.</summary>
+    public Task RunEmailWorkerAsync()
+    {
+        var worker = new EmailOutboxWorker(
+            Services.GetRequiredService<IServiceScopeFactory>(), Time, NullLogger<EmailOutboxWorker>.Instance);
+        return worker.RunOnceAsync(CancellationToken.None);
+    }
+
+    public Task<List<EmailOutboxItem>> OutboxFor(Guid orderId) =>
+        QueryDbAsync(db => db.EmailOutbox.AsNoTracking().Where(e => e.OrderId == orderId).OrderBy(e => e.CreatedAt).ToListAsync());
 }
