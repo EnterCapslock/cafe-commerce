@@ -37,6 +37,7 @@ public static class TestEnvironment
             Set("Cors__AllowedOrigins__0", AllowedOrigin);
             Set("RateLimits__AuthPerMinute", "100000");
             Set("RateLimits__OrdersPerMinute", "100000");
+            Set("RateLimits__LookupPerMinute", "100000");
             Set("Logging__LogLevel__Default", "Warning");
             Set("Logging__LogLevel__Microsoft.EntityFrameworkCore.Database.Command", "None");
             Set("Logging__LogLevel__Microsoft.AspNetCore.Routing.EndpointRoutingMiddleware", "Error");

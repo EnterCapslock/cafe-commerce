@@ -102,6 +102,10 @@ export const api = {
   getMyOrders: (signal?: AbortSignal) =>
     request<OrderDto[]>("/api/proxy/orders/mine", { baseUrl: "", cache: "no-store", signal }),
 
+  // A guest order can be found again from the code on its page and the email used at checkout.
+  lookupOrder: (body: { code: string; email: string }) =>
+    request<{ orderId: string }>("/api/proxy/orders/lookup", { baseUrl: "", method: "POST", body }),
+
   // ---------- Admin (the API rejects anyone who isn't an admin) ----------
 
   /** No status = the active board. Completed or Cancelled = history. */

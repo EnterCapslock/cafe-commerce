@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "@/components/auth/session-provider";
 import { SiteHeader } from "@/components/layout/site-header";
+import { SiteFooter } from "@/components/layout/site-footer";
 import { Toaster } from "@/components/ui/sonner";
 import { SITE_NAME } from "@/lib/config";
 
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <SessionProvider>
           <SiteHeader />
           <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">{children}</main>
+          <SiteFooter />
         </SessionProvider>
         <Toaster richColors position="top-center" />
       </body>
