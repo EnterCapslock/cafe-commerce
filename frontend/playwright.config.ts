@@ -49,6 +49,7 @@ export default defineConfig({
         Seed__AdminPassword: "E2eAdmin#12345",
         RateLimits__AuthPerMinute: "100000",
         RateLimits__OrdersPerMinute: "100000",
+        RateLimits__LookupPerMinute: "100000",
         // PayMongo points at a dead address: "Pay online" fails instantly and offline.
         PayMongo__SecretKey: "sk_test_e2e_not_a_real_key",
         PayMongo__BaseUrl: "http://127.0.0.1:9/",

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 
 export function SaveOrderLink({ orderId }: { orderId: string }) {
   const [copied, setCopied] = useState(false);
+  const code = orderId.slice(0, 8).toUpperCase();
 
   async function copy() {
     try {
@@ -23,8 +24,12 @@ export function SaveOrderLink({ orderId }: { orderId: string }) {
       <div className="space-y-1">
         <h2 className="font-medium">Save this page&apos;s link</h2>
         <p className="text-sm text-muted-foreground">
-          You&apos;re checking out as a guest, so this page is the only way to check on your order.
-          Bookmark it or copy the link.
+          You&apos;re checking out as a guest, so this page is how you check on your order. Bookmark it or copy the link.
+          If you lose it, use{" "}
+          <Link href="/find-order" className="font-medium text-foreground underline underline-offset-4">
+            Find my order
+          </Link>{" "}
+          with your order code (<span className="font-mono font-medium text-foreground">{code}</span>) and your email.
         </p>
       </div>
       <div className="flex flex-wrap items-center gap-3">

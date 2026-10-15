@@ -108,7 +108,7 @@ export const apiAdminToken = (request: APIRequestContext) => apiLogin(request, A
 export async function apiPlaceOrder(
   request: APIRequestContext,
   token?: string,
-  options: { name?: string; pickupMinutes?: number } = {},
+  options: { name?: string; pickupMinutes?: number; email?: string } = {},
 ) {
   const menu = (await (await request.get(`${API_URL}/api/products`)).json()) as { id: number; name: string }[];
   const flatWhite = menu.find((p) => p.name === "Flat White");
@@ -122,7 +122,7 @@ export async function apiPlaceOrder(
     headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     data: {
       customerName: options.name ?? "API Customer",
-      customerEmail: "api-customer@example.com",
+      customerEmail: options.email ?? "api-customer@example.com",
       customerPhone: "09171234567",
       pickupTime: new Date(Date.now() + (options.pickupMinutes ?? 60) * 60_000).toISOString(),
       paymentMethod: "PayAtCounter",

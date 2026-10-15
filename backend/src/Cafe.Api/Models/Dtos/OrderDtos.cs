@@ -3,6 +3,10 @@ namespace Cafe.Api.Models.Dtos;
 
 public record OrderLineRequest(int VariantId, int Quantity);
 
+public record LookupOrderRequest(string Code, string Email);
+
+public record OrderLookupResponse(Guid OrderId);
+
 public record CreateOrderRequest(
     string CustomerName,
     string CustomerEmail,

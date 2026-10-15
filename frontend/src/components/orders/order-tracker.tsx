@@ -96,6 +96,9 @@ export function OrderTracker({ id }: { id: string }) {
           <Button asChild variant="outline">
             <Link href="/">Back to the menu</Link>
           </Button>
+          <Button asChild variant="outline">
+            <Link href="/find-order">Find my order</Link>
+          </Button>
         </div>
       </div>
     );

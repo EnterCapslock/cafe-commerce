@@ -8,7 +8,7 @@ namespace Cafe.Api.Controllers;
 
 [ApiController]
 [Route("api/orders")]
-public class OrdersController(IOrderService orders) : ControllerBase
+public class OrdersController(IOrderService orders, IOrderLookupService lookup) : ControllerBase
 {
     /// <summary>Places an order as a guest, or as the logged-in user if a token is supplied.</summary>
     [HttpPost]
@@ -61,6 +61,31 @@ public class OrdersController(IOrderService orders) : ControllerBase
     {
         var order = await orders.GetByIdAsync(id, CurrentUserId(), User.IsInRole("Admin"), ct);
         return order is null ? NotFound() : Ok(order);
+    }
+
+    /// <summary>Finds a guest order from the code on its page and the email used at checkout.</summary>
+    [HttpPost("lookup")]
+    [AllowAnonymous]
+    [EnableRateLimiting("lookup")]
+    [ProducesResponseType<OrderLookupResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status429TooManyRequests)]
+    public async Task<ActionResult<OrderLookupResponse>> Lookup(LookupOrderRequest request, CancellationToken ct)
+    {
+        var result = await lookup.FindAsync(request.Code, request.Email, ct);
+
+        if (result.Status == LookupStatus.Found)
+            return Ok(new OrderLookupResponse(result.OrderId!.Value));
+
+        if (result.Status == LookupStatus.TooManyAttempts)
+            return Problem(statusCode: StatusCodes.Status429TooManyRequests, title: "Too many attempts. Please wait a while and try again.");
+
+        // Every kind of miss gets this exact answer, so the endpoint reveals nothing about which orders exist.
+        return Problem(
+            statusCode: StatusCodes.Status404NotFound,
+            title: "We couldn't find an order with that code and email.",
+            detail: "Check both, or sign in if you ordered with an account.");
     }
 
     /// <summary>Lists the signed-in customer's 50 most recent orders.</summary>

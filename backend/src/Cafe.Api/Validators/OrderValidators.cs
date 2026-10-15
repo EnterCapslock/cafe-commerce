@@ -44,3 +44,17 @@ public class CreateOrderRequestValidator : AbstractValidator<CreateOrderRequest>
         });
     }
 }
+
+public class LookupOrderRequestValidator : AbstractValidator<LookupOrderRequest>
+{
+    public LookupOrderRequestValidator()
+    {
+        RuleFor(x => x.Code)
+            .Cascade(CascadeMode.Stop)
+            .NotEmpty().WithMessage("Enter your order code.")
+            .Must(code => OrderCode.Normalize(code) is not null)
+                .WithMessage("The order code is 8 letters and numbers, like E18B681F.");
+
+        RuleFor(x => x.Email).NotEmpty().MaximumLength(254).EmailAddress();
+    }
+}

@@ -43,6 +43,7 @@ builder.Services.AddJwtAuth(builder.Configuration);
 // --- Rate limiting (per visitor: see ClientIp) ---
 var authPerMinute = builder.Configuration.GetValue("RateLimits:AuthPerMinute", 10);
 var ordersPerMinute = builder.Configuration.GetValue("RateLimits:OrdersPerMinute", 20);
+var lookupPerMinute = builder.Configuration.GetValue("RateLimits:LookupPerMinute", 10);
 
 builder.Services.AddRateLimiter(options =>
 {
@@ -57,6 +58,11 @@ builder.Services.AddRateLimiter(options =>
         RateLimitPartition.GetFixedWindowLimiter(
             ClientIp.Resolve(httpContext),
             _ => new FixedWindowRateLimiterOptions { PermitLimit = ordersPerMinute, Window = TimeSpan.FromMinutes(1) }));
+
+    options.AddPolicy("lookup", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            ClientIp.Resolve(httpContext),
+            _ => new FixedWindowRateLimiterOptions { PermitLimit = lookupPerMinute, Window = TimeSpan.FromMinutes(1) }));
 });
 
 // --- Errors: RFC 7807 everywhere ---
@@ -98,6 +104,8 @@ builder.Services.AddScoped<IAdminProductService, AdminProductService>();
 builder.Services.AddScoped<IAdminOrderService, AdminOrderService>();
 builder.Services.AddSingleton<IImageStorage, CloudinaryImageStorage>();
 builder.Services.AddHostedService<OrderCleanupService>();
+builder.Services.AddScoped<IOrderLookupService, OrderLookupService>();
+builder.Services.AddSingleton<LookupThrottle>();
 
 var app = builder.Build();
 
