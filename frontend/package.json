@@ -13,7 +13,7 @@
     "e2e:reset": "docker compose -f ../docker-compose.yml exec -T db psql -U postgres -c \"DROP DATABASE IF EXISTS cafe_e2e WITH (FORCE)\""
   },
   "dependencies": {
-    "@hookform/resolvers": "^5.9.2",
+    "@hookform/resolvers": "^6.0.0",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.5.0",
     "lucide-react": "^1.59.0",
