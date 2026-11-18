@@ -13,16 +13,16 @@
     "e2e:reset": "docker compose -f ../docker-compose.yml exec -T db psql -U postgres -c \"DROP DATABASE IF EXISTS cafe_e2e WITH (FORCE)\""
   },
   "dependencies": {
-    "@hookform/resolvers": "^7.0.3",
+    "@hookform/resolvers": "^7.0.6",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.5.2",
-    "lucide-react": "^1.70.0",
-    "next": "16.4.5",
+    "lucide-react": "^1.73.0",
+    "next": "16.4.6",
     "next-themes": "^0.4.6",
     "radix-ui": "^1.8.1",
     "react": "19.3.1",
     "react-dom": "19.3.1",
-    "react-hook-form": "^7.91.0",
+    "react-hook-form": "^7.92.0",
     "server-only": "^0.0.1",
     "shadcn": "^4.22.1",
     "sonner": "^2.0.8",
@@ -31,13 +31,13 @@
     "zustand": "^5.1.0"
   },
   "devDependencies": {
-    "@playwright/test": "^1.65.0",
+    "@playwright/test": "^1.65.1",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^26",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^10",
-    "eslint-config-next": "16.4.5",
+    "eslint-config-next": "16.4.6",
     "tailwindcss": "^4",
     "typescript": "^6.0.3"
   }
